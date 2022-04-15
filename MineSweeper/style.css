@@ -1,0 +1,94 @@
+*{
+    margin:0;
+    box-sizing: border-box;
+}
+body{
+    background: rgb(137, 175, 204);
+}
+
+table{
+    border-collapse: separate;
+    
+    margin:40px auto;
+}
+td{
+    width:32px;
+    height: 32px;
+    padding:0;
+    border:1px solid #444;
+    text-align: center;
+}
+input[type=number]{
+    width:100px;
+}
+
+hr {
+    border: white solid 1px;
+}
+#inputContainer{
+    color:white;
+    text-align: center;
+    padding-top: 15px;
+}
+
+#title-game {
+    text-align: center;
+    font-size: 30px;
+    padding: 10px;
+    font-family: Georgia;
+}
+
+#btn{
+    color:white;
+    margin:10px;
+    text-align: center;
+    font-size: 10px;
+    background: #222;
+    border:4px outset #333;
+    width:200px;
+    height: 40px;
+    padding:10px 30px;
+}
+#btn:active{
+    background: #555;
+}
+
+.closed{
+    padding:0;
+    border:2px solid #444;
+    background: rgb(122, 122, 122);
+}
+
+.closed:hover{
+    background:#ccc;
+}
+
+.open{
+    transition-property: background;
+    transition-duration: 0.6s;
+    transition-timing-function: ease-out;
+    background:#fff;
+}
+
+.mine{
+    background:rgb(241, 0, 0);
+    color:rgb(255, 183, 28);
+}
+
+#countUp {
+    text-align: center;
+    border: #222 solid 1px;
+    background-color: white;
+    margin-left: 800px;
+    margin-right: 800px;
+    font-weight: bold;
+    height: 50px;
+    padding-top: 10px;
+}
+
+@keyframes openAnimation{
+    0%{ background: #888;}
+    80%{    background: #666;}
+    81%{    background:#fff;}
+    100%{   background: #fff;}
+}
