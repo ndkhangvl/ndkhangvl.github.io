@@ -149,9 +149,9 @@ function win(){
 
 function gameover(target) {
     console.log("gameover");
-    // alert("Bạn thua rùi !")
+    alert("Bạn thua rùi !")
     clearInterval(timerVar);
-    // totalSeconds = 0;
+   
     target.setAttribute("class", "mine");
     target.textContent = "¤";
 
