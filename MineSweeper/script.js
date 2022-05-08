@@ -9,15 +9,15 @@ document.getElementById("btn").onclick = newGame;
 
 function initBoard() {
     let mineNum = 0;
-    board = new Array(rows * cols);
-    board.fill(0);
+    board = new Array(rows * cols); // Tao bang va gan gia tri mac dinh la 0 
+    board.fill(0); 
     do {
-        let ran = Math.floor(Math.random() * rows * cols); /*Sinh ngau nhien vi tri min*/
+        let ran = Math.floor(Math.random() * rows * cols); // Sinh ngau nhien vi tri min
         board[ran] = 9;
         mineNum++;
     } while (mineNum < mineCount);
 
-    for (let i = 0; i < rows; i++) {
+    for (let i = 0; i < rows; i++) { // Vong lap chay het bang de kiem tra xem o nao co min 
         for (let j = 0; j < cols; j++) {
             if (board[i * cols + j] == 9)
                 continue;
@@ -39,7 +39,7 @@ function check(i, j) {
     if (i < 0 || i >= rows || j < 0 || j >= cols)
         return 0;
     else if (board[i * cols + j] == 9)
-        return 1; //Neu so do la 9 thi do la mot qua bom
+        return 1; //Neu vi tri la bang 9 thi tra ve 1 
     else return 0;
 
 }
@@ -115,7 +115,7 @@ function open(row, col) {
     var target = trList[row].querySelectorAll('td')[col];
 
     if (target.textContent != "") { return; }
-    //console.log(target);
+        console.log(target);
     if (target.getAttribute("class") != "closed")
         return;
     var num = board[row * cols + col];

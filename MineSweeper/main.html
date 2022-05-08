@@ -10,22 +10,25 @@
 </head>
 
 <body>
-    <div id="title-game"><h1>MineSweeper</h1></div>
+    <div id="title-game"><a href="">MineSweeper</a></div>
     <hr></hr>
     <div id="inputContainer">
         <label>Hàng: <input type="number" value="20" min="10" id="cols"></label>
         <label>Cột: <input type="number" value="15" min="10" id="rows"></label>
         <label>Số Bom: <input type="number" value="30" min="10" id="mines"></label>
-        <br>
+        <br></br>
         <button id="btn">▶</button>
+        <br></br>
     </div>
     <div>
         <p id="countUp"></p>
     </div>
-    <table id="board">
-        <tbody id="board_tbody">
-        </tbody>
-    </table>
+    <div>
+        <table id="board">
+            <tbody id="board_tbody">
+            </tbody>
+        </table>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>
