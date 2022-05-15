@@ -6,16 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Dò mìn - Minesweeper</title>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <div id="title-game"><a href="">MineSweeper</a></div>
+    <div id="title-game"><h1>MineSweeper</h1></div>
     <hr></hr>
     <div id="inputContainer">
-        <label>Hàng: <input type="number" value="20" min="10" id="cols"></label>
-        <label>Cột: <input type="number" value="15" min="10" id="rows"></label>
-        <label>Số Bom: <input type="number" value="30" min="10" id="mines"></label>
+        <label>Hàng: <input type="number" value="20" min="10" max="40" id="cols" /></label>
+        <label>Cột: <input type="number" value="15" min="10" max="40" id="rows" /></label>
+        <label>Số Bom: <input type="number" value="30" min="10" id="mines" /></label>
         <br></br>
         <button id="btn">▶</button>
         <br></br>
@@ -23,9 +24,13 @@
     <div>
         <p id="countUp"></p>
     </div>
-    <div>
+    <div id="container-noti">
         <table id="board">
             <tbody id="board_tbody">
+                <div id="notification">
+                    <div><span id="win-noti"></span></div>
+                    <input type="button" value="OK" id="btn-close-notification" onclick="closeNoti();">
+                </div>
             </tbody>
         </table>
     </div>

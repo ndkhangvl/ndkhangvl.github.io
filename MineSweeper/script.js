@@ -17,7 +17,7 @@ function initBoard() {
         mineNum++;
     } while (mineNum < mineCount);
 
-    for (let i = 0; i < rows; i++) { // Vong lap chay het bang de kiem tra xem o nao co min 
+    for (let i = 0; i < rows; i++) { // Vong lap chay het bang de kiem tra xem o nao co min, va co bao nhieu min trong 8 o co xung quanh 
         for (let j = 0; j < cols; j++) {
             if (board[i * cols + j] == 9)
                 continue;
@@ -124,9 +124,15 @@ function open(row, col) {
     else if (num > 0 && num < 9) {
         target.setAttribute("class", "open");
         target.textContent = num;
+        if (num == 1) target.classList.add('one')
+        if (num == 2) target.classList.add('two')
+        if (num == 3) target.classList.add('three')
+        if (num == 4) target.classList.add('four')
+        target.innerHTML = num;
     }
     else if (num == 0) {
         target.setAttribute("class", "open");
+        if (num == 0) target.classList.add('zero');
         open(row - 1, col - 1);
         open(row, col - 1);
         open(row + 1, col - 1);
@@ -144,12 +150,19 @@ function open(row, col) {
 }
 
 function win(){
-    alert("Bạn đã chiến thắng trò chơi!");
+    clearInterval(timerVar);
+    console.log("Bạn đã chiến thắng trò chơi!");
+    document.getElementById("notification").style.display = "flex";
+    document.getElementById("win-noti").style.display = "flex";
+    document.getElementById("win-noti").innerHTML= "Chúc Mừng Bạn Đã Chiến Thắng Với Tổng Thời Gian " + totalSeconds + "s";
 }
 
 function gameover(target) {
     console.log("gameover");
-    alert("Bạn thua rùi !")
+    document.getElementById("notification").style.display = "flex";
+    document.getElementById("win-noti").style.display = "flex";
+    document.getElementById("win-noti").innerHTML= "Bạn đã thua mất rồi!";
+    // alert("Bạn đã thua mất rồi !");
     clearInterval(timerVar);
    
     target.setAttribute("class", "mine");
@@ -167,11 +180,23 @@ function gameover(target) {
         else if (num > 0 && num < 9) {
             cell.setAttribute("class", "open");
             cell.textContent = num;
+            if (num == 1) cell.classList.add('one')
+            if (num == 2) cell.classList.add('two')
+            if (num == 3) cell.classList.add('three')
+            if (num == 4) cell.classList.add('four')
+            if (num == 5) cell.classList.add('five')
+            cell.innerHTML = num;
         }
         else if (num == 0) {
             cell.setAttribute("class", "open");
+            cell.classList.add('zero')
+            cell.innerHTML = "";
         }
     }
+}
+
+function closeNoti() {
+    document.getElementById("notification").style.display = "none";
 }
 
 function newGame() {
@@ -187,4 +212,6 @@ function newGame() {
     openedCells=0;
     initBoard();
     initHTML();
+    document.getElementById("win-noti").style.display = "none";
+    document.getElementById("win-noti").innerHTML="";
 }
