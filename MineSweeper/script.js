@@ -12,12 +12,12 @@ function initBoard() {
     board = new Array(rows * cols); // Tao bang va gan gia tri mac dinh la 0 
     board.fill(0); 
     do {
-        let ran = Math.floor(Math.random() * rows * cols); // Sinh ngau nhien vi tri min
+        let ran = Math.floor(Math.random() * rows * cols); // Sinh ngau nhien so vi tri chua min 
         board[ran] = 9;
         mineNum++;
     } while (mineNum < mineCount);
 
-    for (let i = 0; i < rows; i++) { // Vong lap chay het bang de kiem tra xem o nao co min, va co bao nhieu min trong 8 o co xung quanh 
+    for (let i = 0; i < rows; i++) { // Vong lap chay het bang de kiem tra xem mot o nao do co bao nhieu min trong 8 o xung quanh 
         for (let j = 0; j < cols; j++) {
             if (board[i * cols + j] == 9)
                 continue;
@@ -39,7 +39,7 @@ function check(i, j) {
     if (i < 0 || i >= rows || j < 0 || j >= cols)
         return 0;
     else if (board[i * cols + j] == 9)
-        return 1; //Neu vi tri la bang 9 thi tra ve 1 
+        return 1; //Kiem tra vi tri o do trong bang = 9 thi tra ve 1 
     else return 0;
 
 }
@@ -79,7 +79,7 @@ function initHTML() {
     }
 }
 
-function clicked(e) {
+function clicked(e) { //tham so e dai dien cho phan tu su kien bi anh huong, o day la an vao
     var target = e.target;
     var index = target.getAttribute("ind");
     if (target.textContent != "") { return; }
@@ -106,12 +106,12 @@ function rightClicked(e) {
     }
 }
 
-function open(row, col) {
+function open(row, col) { //hang, cot
 
     if (row < 0 || row >= rows || col < 0 || col >= cols)
         return;
 
-    var trList = document.getElementById("board_tbody").querySelectorAll('tr'); //Truy xuat cac du lieu cua tr
+    var trList = document.getElementById("board_tbody").querySelectorAll('tr'); //Truy xuat cac du lieu cua hang
     var target = trList[row].querySelectorAll('td')[col];
 
     if (target.textContent != "") { return; }
@@ -176,6 +176,7 @@ function gameover(target) {
         if (num == 9) {
             cell.setAttribute("class", "mine");
             cell.textContent = "💣";
+            
         }
         else if (num > 0 && num < 9) {
             cell.setAttribute("class", "open");
