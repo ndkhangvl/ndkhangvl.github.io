@@ -1,17 +1,37 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" class="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sổ Điểm Học Vụ - Local Storage, Pro Excel & Dự Báo Mục Tiêu Tốt Nghiệp</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sổ Điểm Học Vụ & Dự Báo Mục Tiêu Tốt Nghiệp - CTU</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SheetJS (XLSX) CDN -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
+                    // Cấu hình Bảng màu Chuẩn CTU Brand Identity
+                    colors: {
+                        brand: {
+                            50: '#eef7ff',
+                            100: '#d9edff',
+                            200: '#bce0ff',
+                            300: '#8eccff',
+                            400: '#00afef', // CTU Light Blue / Cyan từ thiết kế
+                            500: '#0095d6',
+                            600: '#1f5ca9', // CTU Primary Navy Blue từ thiết kế
+                            700: '#184a8a',
+                            800: '#163e71',
+                            900: '#16355d',
+                            950: '#0e213d',
+                        }
+                    },
                     fontFamily: {
                         sans: ['Inter', 'system-ui', 'sans-serif'],
                         mono: ['JetBrains Mono', 'ui-monospace', 'monospace']
@@ -22,221 +42,254 @@
     </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #0f172a; }
+        body { font-family: 'Inter', sans-serif; }
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
-        .dense-input { transition: border-color 0.15s ease, box-shadow 0.15s ease; }
-        .dense-input:focus { outline: none; border-color: #4338ca; box-shadow: 0 0 0 2px rgba(67, 56, 202, 0.15); }
+        .dense-input { transition: all 0.15s ease; }
+        .dense-input:focus { outline: none; box-shadow: 0 0 0 2px rgba(31, 92, 169, 0.4); }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between antialiased">
+<body class="min-h-screen flex flex-col justify-between antialiased bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200">
 
     <div>
-        <header class="bg-slate-900 text-white border-b border-slate-800 px-4 py-3">
-            <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-                <div class="flex items-center gap-3">
-                    <div class="bg-indigo-600 text-white p-1.5 rounded-sm font-mono text-xs font-bold tracking-widest uppercase">
-                        ACAD-LOG
+        <!-- CTU Header Style -->
+        <header class="bg-brand-600 dark:bg-brand-950 text-white border-b border-brand-700 px-3 sm:px-4 py-3 shadow-md">
+            <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="bg-white text-brand-600 p-1.5 rounded font-mono text-xs font-black tracking-widest uppercase shrink-0 shadow-sm">
+                        CTU
                     </div>
                     <div>
-                        <div class="flex items-center gap-2">
-                            <h1 class="text-sm font-bold uppercase tracking-wider text-slate-100">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h1 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-white">
                                 Sổ Quản Lý Điểm & Lập Kế Hoạch Tốt Nghiệp
                             </h1>
-                            <span class="inline-flex items-center gap-1 bg-emerald-950 text-emerald-400 border border-emerald-800 text-[10px] font-mono px-2 py-0.5 rounded-sm font-medium">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                100% Local Storage
+                            <span class="inline-flex items-center gap-1 bg-brand-800 text-brand-300 border border-brand-500/30 text-[10px] font-mono px-1.5 py-0.5 rounded font-medium">
+                                <span class="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse"></span>
+                                LocalStorage
                             </span>
                         </div>
-                        <p class="text-[11px] text-slate-400 mt-0.5">Quy chế Học vụ: Điều 21 (Thang điểm) & Điều 23 (ĐTB Tích lũy)</p>
+                        <p class="text-[10px] sm:text-[11px] text-brand-100/80 mt-0.5">Quy chế Học vụ Đại học Cần Thơ: Điều 21 & Điều 23</p>
                     </div>
                 </div>
 
-                <div class="flex items-center gap-2">
-                    <button onclick="toggleRegulationSheet()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs px-3 py-1.5 rounded-sm font-medium transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-table-list text-slate-400"></i> Quy chế Điều 21 & 23
+                <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                    <!-- Dark / Light Theme Toggle Button -->
+                    <button onclick="toggleDarkMode()" title="Chuyển chế độ sáng/tối" class="bg-brand-700/60 hover:bg-brand-700 text-amber-300 border border-brand-500/30 text-xs px-2.5 py-1.5 rounded font-medium transition flex items-center gap-1.5">
+                        <i id="theme-icon" class="fa-solid fa-moon"></i>
+                        <span id="theme-text" class="hidden sm:inline">Tối</span>
                     </button>
-                    <button onclick="loadPresetData()" class="bg-indigo-700 hover:bg-indigo-600 text-white text-xs px-3 py-1.5 rounded-sm font-medium transition flex items-center gap-1.5 shadow-sm">
-                        <i class="fa-solid fa-rotate-left"></i> Nạp Dữ Liệu Mẫu
+
+                    <!-- <button onclick="toggleRegulationSheet()" class="bg-brand-700/60 hover:bg-brand-700 text-white border border-brand-500/30 text-xs px-2.5 py-1.5 rounded font-medium transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-table-list text-brand-300"></i> Quy Chế
+                    </button> -->
+                    
+                    <button onclick="loadPresetData()" class="bg-brand-400 hover:bg-brand-500 text-white font-bold text-xs px-2.5 py-1.5 rounded transition flex items-center gap-1.5 shadow-sm">
+                        <i class="fa-solid fa-rotate-left"></i> Dữ Liệu Mẫu
                     </button>
                 </div>
             </div>
         </header>
 
-        <main class="max-w-7xl mx-auto px-4 py-6 space-y-5">
+        <!-- Main Workspace -->
+        <main class="max-w-7xl mx-auto px-2.5 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-5">
 
-            <div class="bg-white border border-slate-300 rounded-sm shadow-sm divide-y md:divide-y-0 md:divide-x divide-slate-200 grid grid-cols-2 md:grid-cols-4">
+            <!-- High-Density Metric Strip (CTU Colored Focus) -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded shadow-sm divide-y sm:divide-y-0 sm:divide-x divide-slate-200 dark:divide-slate-800 grid grid-cols-2 sm:grid-cols-4 transition-colors">
                 
-                <div class="p-3.5 bg-slate-50/50">
-                    <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500">TC Tích Lũy (Đạt)</div>
-                    <div class="flex items-baseline gap-2 mt-1">
-                        <span id="metric-tc" class="text-2xl font-bold font-mono text-slate-900">0</span>
-                        <span class="text-xs text-slate-500 font-medium">Tín chỉ</span>
+                <!-- Metric 1: TC Tích lũy -->
+                <div class="p-3 sm:p-3.5 bg-slate-50/50 dark:bg-slate-900/50">
+                    <div class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">TC Tích Lũy</div>
+                    <div class="flex items-baseline gap-1.5 sm:gap-2 mt-0.5 sm:mt-1">
+                        <span id="metric-tc" class="text-xl sm:text-2xl font-bold font-mono text-slate-900 dark:text-slate-100">0</span>
+                        <span class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium">TC</span>
                     </div>
-                    <div class="text-[10px] text-slate-500 mt-0.5">Loại trừ điểm F, GDTC & ĐK</div>
+                    <div class="text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 truncate">Trừ F, GDTC, ĐK</div>
                 </div>
 
-                <div class="p-3.5">
-                    <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500">ĐTB Chung Học Kỳ (ĐTBCHK)</div>
-                    <div class="flex items-baseline gap-2 mt-1">
-                        <span id="metric-gpa-hk4" class="text-2xl font-bold font-mono text-indigo-700">0.00</span>
-                        <span id="metric-gpa-hk10" class="text-xs font-mono font-medium text-slate-600">/ 10: 0.00</span>
+                <!-- Metric 2: ĐTB Học Kỳ -->
+                <div class="p-3 sm:p-3.5">
+                    <div class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">ĐTB Học Kỳ</div>
+                    <div class="flex items-baseline gap-1 sm:gap-2 mt-0.5 sm:mt-1">
+                        <span id="metric-gpa-hk4" class="text-xl sm:text-2xl font-bold font-mono text-brand-400 font-black">0.00</span>
+                        <span id="metric-gpa-hk10" class="text-[10px] sm:text-xs font-mono font-medium text-slate-600 dark:text-slate-400">/ 10: 0.00</span>
                     </div>
-                    <div class="text-[10px] text-slate-500 mt-0.5">Tính tất cả môn HK (Gồm cả F & ĐK)</div>
+                    <div class="text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 truncate">Gồm tất cả môn HK</div>
                 </div>
 
-                <div class="p-3.5 bg-slate-50/50">
-                    <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500">ĐTB Tích Lũy (ĐTBCTL)</div>
-                    <div class="flex items-baseline gap-2 mt-1">
-                        <span id="metric-gpa-tl4" class="text-2xl font-bold font-mono text-emerald-700">0.00</span>
-                        <span id="metric-gpa-tl10" class="text-xs font-mono font-medium text-slate-600">/ 10: 0.00</span>
+                <!-- Metric 3: ĐTB Tích Lũy -->
+                <div class="p-3 sm:p-3.5 bg-slate-50/50 dark:bg-slate-900/50">
+                    <div class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">ĐTB Tích Lũy</div>
+                    <div class="flex items-baseline gap-1 sm:gap-2 mt-0.5 sm:mt-1">
+                        <span id="metric-gpa-tl4" class="text-xl sm:text-2xl font-bold font-mono text-brand-600 dark:text-brand-300">0.00</span>
+                        <span id="metric-gpa-tl10" class="text-[10px] sm:text-xs font-mono font-medium text-slate-600 dark:text-slate-400">/ 10: 0.00</span>
                     </div>
-                    <div class="text-[10px] text-slate-500 mt-0.5">Chỉ tính môn đã tích lũy thành công</div>
+                    <div class="text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 truncate">Môn đạt tích lũy</div>
                 </div>
 
-                <div class="p-3.5">
-                    <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Xếp Loại Hiện Tại</div>
-                    <div id="metric-rank" class="text-base font-bold text-slate-700 mt-1.5 uppercase tracking-wide">
+                <!-- Metric 4: Academic Rank -->
+                <div class="p-3 sm:p-3.5">
+                    <div class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Xếp Loại Hiện Tại</div>
+                    <div id="metric-rank" class="text-sm sm:text-base font-bold text-slate-700 dark:text-slate-300 mt-1 uppercase tracking-wide truncate">
                         CHƯA XẾP LOẠI
                     </div>
-                    <div class="text-[10px] text-slate-500 mt-0.5">Căn cứ ĐTBCTL Thang 4.0</div>
+                    <div class="text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 truncate">Căn cứ Thang 4.0</div>
                 </div>
             </div>
 
-            <div class="bg-white border border-indigo-200 rounded-sm shadow-sm overflow-hidden">
-                <div class="bg-indigo-900 text-white px-4 py-2.5 flex items-center justify-between">
+            <!-- GRADUATION TARGET PREDICTOR (CTU Theme Styled) -->
+            <div class="bg-white dark:bg-slate-900 border border-brand-200 dark:border-brand-900 rounded shadow-sm overflow-hidden transition-colors">
+                <div class="bg-brand-600 dark:bg-brand-900 text-white px-3 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between border-b border-brand-700">
                     <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-bullseye text-indigo-300"></i>
-                        <h2 class="text-xs font-bold uppercase tracking-wider">Lập Kế Hoạch & Dự Báo Mục Tiêu Tốt Nghiệp</h2>
+                        <i class="fa-solid fa-bullseye text-brand-400 text-xs sm:text-sm"></i>
+                        <h2 class="text-xs font-bold uppercase tracking-wider">Mục Tiêu Tốt Nghiệp</h2>
                     </div>
-                    <span class="text-[10px] bg-indigo-800 text-indigo-200 px-2 py-0.5 rounded font-mono">Căn cứ Điều 21 & 23</span>
                 </div>
 
-                <div class="p-4 space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-3 border border-slate-200 rounded-sm">
+                <div class="p-3 sm:p-4 space-y-3 sm:space-y-4">
+                    <!-- Target Inputs -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-brand-50/50 dark:bg-slate-800/50 p-3 border border-brand-100 dark:border-slate-700/60 rounded">
                         <div>
-                            <label class="block text-[11px] font-bold uppercase text-slate-700 mb-1">
-                                Tổng TC Khóa Học Cần Tích Lũy:
+                            <label class="block text-[10px] sm:text-[11px] font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                                Tổng TC Toàn Khóa:
                             </label>
                             <div class="flex items-center gap-1.5">
                                 <input type="number" id="target-total-credits" value="120" min="1" max="250"
                                     onchange="calculateGraduationTarget()" onkeyup="calculateGraduationTarget()"
-                                    class="dense-input w-full bg-white border border-slate-300 rounded-sm px-2.5 py-1.5 font-mono font-bold text-slate-800 text-sm">
-                                <span class="text-xs text-slate-500 font-semibold">Tín chỉ</span>
+                                    class="dense-input w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-2.5 py-1.5 font-mono font-bold text-slate-800 dark:text-slate-100 text-xs sm:text-sm">
+                                <span class="text-xs text-slate-500 dark:text-slate-400 font-semibold shrink-0">Tín chỉ</span>
                             </div>
                         </div>
 
                         <div>
-                            <label class="block text-[11px] font-bold uppercase text-slate-700 mb-1">
-                                Mục Tiêu Xếp Loại Tốt Nghiệp:
+                            <label class="block text-[10px] sm:text-[11px] font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                                Mục Tiêu Xếp Loại:
                             </label>
                             <select id="target-rank-select" onchange="calculateGraduationTarget()"
-                                class="dense-input w-full bg-white border border-slate-300 rounded-sm px-2 py-1.5 font-bold text-slate-800 text-xs">
-                                <option value="3.60">Xuất Sắc (ĐTBCTL ≥ 3.60)</option>
-                                <option value="3.20" selected>Giỏi (ĐTBCTL ≥ 3.20)</option>
-                                <option value="2.50">Khá (ĐTBCTL ≥ 2.50)</option>
-                                <option value="2.00">Trung Bình (ĐTBCTL ≥ 2.00)</option>
+                                class="dense-input w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-2 py-1.5 font-bold text-slate-800 dark:text-slate-100 text-xs">
+                                <option value="3.60">Xuất Sắc (GPA ≥ 3.60)</option>
+                                <option value="3.20" selected>Giỏi (GPA ≥ 3.20)</option>
+                                <option value="2.50">Khá (GPA ≥ 2.50)</option>
+                                <option value="2.00">Trung Bình (GPA ≥ 2.00)</option>
                             </select>
                         </div>
 
-                        <div class="flex flex-col justify-center">
-                            <div class="text-[11px] text-slate-500 font-medium">TC Còn Thiếu So Với Mục Tiêu:</div>
+                        <div class="flex flex-col justify-center pt-1 sm:pt-0">
+                            <div class="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium">TC Còn Thiếu So Với Mục Tiêu:</div>
                             <div class="flex items-baseline gap-1 mt-0.5">
-                                <span id="target-remaining-tc" class="text-xl font-mono font-bold text-indigo-700">0</span>
-                                <span class="text-xs text-slate-600 font-semibold">/ <span id="target-total-display">120</span> TC</span>
+                                <span id="target-remaining-tc" class="text-lg sm:text-xl font-mono font-bold text-brand-600 dark:text-brand-400">0</span>
+                                <span class="text-xs text-slate-600 dark:text-slate-400 font-semibold">/ <span id="target-total-display">120</span> TC</span>
                             </div>
                         </div>
                     </div>
 
+                    <!-- Forecast Result Output -->
                     <div id="target-prediction-container" class="space-y-3">
-                        </div>
+                        <!-- Dynamic calculations rendered via JS -->
+                    </div>
                 </div>
             </div>
 
-            <div class="bg-white border border-slate-300 rounded-sm shadow-sm overflow-hidden">
+            <!-- Main Data View Container -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded shadow-sm overflow-hidden transition-colors">
                 
-                <div class="bg-slate-100 border-b border-slate-300 px-4 py-2.5 flex justify-between items-center">
+                <!-- Table Action Bar -->
+                <div class="bg-slate-100 dark:bg-slate-800/80 border-b border-slate-300 dark:border-slate-800 px-3 sm:px-4 py-2.5 flex justify-between items-center">
                     <div class="flex items-center gap-2">
-                        <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Danh Sách Bảng Điểm Học Phần</span>
-                        <span id="row-count-tag" class="bg-slate-200 text-slate-700 text-[11px] font-mono px-2 py-0.5 rounded-sm font-semibold">0 môn</span>
+                        <span class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Danh Sách Học Phần</span>
+                        <span id="row-count-tag" class="bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] sm:text-[11px] font-mono px-2 py-0.5 rounded font-semibold">0 môn</span>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <button onclick="addNewRow()" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs px-3 py-1.5 rounded-sm font-semibold transition flex items-center gap-1">
-                            <i class="fa-solid fa-plus text-[10px]"></i> Thêm Học Phần
-                        </button>
-                    </div>
+                    <button onclick="addNewRow()" class="bg-brand-600 hover:bg-brand-700 text-white text-xs px-3 py-1.5 rounded font-semibold transition flex items-center gap-1 shadow-sm">
+                        <i class="fa-solid fa-plus text-[10px]"></i> Thêm Môn
+                    </button>
                 </div>
 
-                <div class="overflow-x-auto">
+                <!-- Desktop Table View -->
+                <div class="hidden md:block overflow-x-auto">
                     <table class="w-full text-left border-collapse font-sans text-xs">
                         <thead>
-                            <tr class="bg-slate-50 text-slate-600 border-b border-slate-300 font-bold uppercase tracking-wider">
-                                <th class="py-2.5 px-3 border-r border-slate-200 w-10 text-center">STT</th>
-                                <th class="py-2.5 px-3 border-r border-slate-200 min-w-[220px]">Tên Học Phần / Môn Học</th>
-                                <th class="py-2.5 px-3 border-r border-slate-200 w-20 text-center">Tín Chỉ</th>
-                                <th class="py-2.5 px-3 border-r border-slate-200 w-28 text-center">Điểm Hệ 10</th>
-                                <th class="py-2.5 px-3 border-r border-slate-200 w-20 text-center">Điểm Chữ</th>
-                                <th class="py-2.5 px-3 border-r border-slate-200 w-24 text-center">Điểm Hệ 4</th>
-                                <th class="py-2.5 px-3 border-r border-slate-200 min-w-[180px] text-center">Phân Loại Môn (Điều 23)</th>
-                                <th class="py-2.5 px-3 text-center w-12">Thao Tác</th>
+                            <tr class="bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-b border-slate-300 dark:border-slate-700 font-bold uppercase tracking-wider">
+                                <th class="py-2.5 px-3 border-r border-slate-200 dark:border-slate-700/60 w-10 text-center">STT</th>
+                                <th class="py-2.5 px-3 border-r border-slate-200 dark:border-slate-700/60 min-w-[220px]">Tên Học Phần / Môn Học</th>
+                                <th class="py-2.5 px-3 border-r border-slate-200 dark:border-slate-700/60 w-20 text-center">Tín Chỉ</th>
+                                <th class="py-2.5 px-3 border-r border-slate-200 dark:border-slate-700/60 w-28 text-center">Điểm Hệ 10</th>
+                                <th class="py-2.5 px-3 border-r border-slate-200 dark:border-slate-700/60 w-20 text-center">Điểm Chữ</th>
+                                <th class="py-2.5 px-3 border-r border-slate-200 dark:border-slate-700/60 w-24 text-center">Điểm Hệ 4</th>
+                                <th class="py-2.5 px-3 border-r border-slate-200 dark:border-slate-700/60 min-w-[180px] text-center">Phân Loại Môn</th>
+                                <th class="py-2.5 px-3 text-center w-12">Xóa</th>
                             </tr>
                         </thead>
-                        <tbody id="grid-body" class="divide-y divide-slate-200 bg-white">
-                            </tbody>
+                        <tbody id="grid-body-desktop" class="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-slate-900">
+                            <!-- Desktop Rows -->
+                        </tbody>
                     </table>
                 </div>
 
-                <div class="bg-slate-50 border-t border-slate-300 p-3 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 text-xs">
-                    
-                    <div class="flex items-center gap-2 text-slate-600">
-                        <i class="fa-solid fa-shield-halved text-emerald-600"></i>
-                        <span>Lưu <strong>100% trong LocalStorage</strong>. Xử lý Excel trực tiếp trên trình duyệt cá nhân.</span>
-                    </div>
+                <!-- Mobile Card List View -->
+                <div id="grid-body-mobile" class="block md:hidden divide-y divide-slate-200 dark:divide-slate-800 bg-slate-50/50 dark:bg-slate-950/50 p-2 space-y-2">
+                    <!-- Mobile Cards Dynamic Render -->
+                </div>
 
-                    <div class="flex items-center gap-2 flex-wrap w-full lg:w-auto justify-end">
-                        
-                        <div class="inline-flex items-center gap-1 bg-emerald-50 border border-emerald-200 p-1 rounded-sm">
-                            <button onclick="exportExcelPro()" class="bg-emerald-700 hover:bg-emerald-800 text-white px-2.5 py-1 rounded-sm text-[11px] font-semibold transition flex items-center gap-1.5 shadow-sm">
-                                <i class="fa-solid fa-file-excel"></i> Xuất Excel Đẹp (.xlsx)
+                <!-- Empty State Indicator -->
+                <div id="empty-state" class="hidden text-center py-10 text-slate-400 dark:text-slate-500 bg-slate-50/50 dark:bg-slate-900/50 px-4">
+                    <i class="fa-solid fa-folder-open text-3xl mb-2 block text-slate-300 dark:text-slate-600"></i>
+                    Bảng điểm đang trống. Bấm <strong>"Thêm Môn"</strong> hoặc <strong>"Nhập Excel"</strong> để bắt đầu.
+                </div>
+
+                <!-- Data Tools & Import/Export Bar -->
+                <div class="bg-slate-50 dark:bg-slate-800/50 border-t border-slate-300 dark:border-slate-800 p-3 flex flex-col gap-3 text-xs">
+                    
+                    <div class="flex items-center gap-2 flex-wrap justify-between">
+                        <!-- Excel Export & Import Group -->
+                        <div class="flex items-center gap-1.5 w-full sm:w-auto">
+                            <button onclick="exportExcelPro()" class="flex-1 sm:flex-none justify-center bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-xs font-semibold transition flex items-center gap-1.5 shadow-sm">
+                                <i class="fa-solid fa-file-excel"></i> Xuất Excel (.xlsx)
                             </button>
-                            <button onclick="document.getElementById('excel-file-input').click()" class="bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-300 px-2.5 py-1 rounded-sm text-[11px] font-semibold transition flex items-center gap-1.5">
-                                <i class="fa-solid fa-file-import"></i> Nhập File Excel
+                            <button onclick="document.getElementById('excel-file-input').click()" class="flex-1 sm:flex-none justify-center bg-white dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-slate-700 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800 px-3 py-1.5 rounded text-xs font-semibold transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-file-import"></i> Nhập Excel
                             </button>
                             <input type="file" id="excel-file-input" class="hidden" accept=".xlsx, .xls, .csv" onchange="importExcel(event)">
                         </div>
 
-                        <div class="inline-flex items-center gap-1 bg-slate-200/60 border border-slate-300 p-1 rounded-sm">
-                            <button onclick="exportJSONBackup()" title="Lưu trữ backup dạng JSON" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 px-2 py-1 rounded-sm text-[11px] font-medium transition flex items-center gap-1">
+                        <!-- Backup & Clear Group -->
+                        <div class="flex items-center gap-1.5 w-full sm:w-auto justify-end">
+                            <button onclick="exportJSONBackup()" title="Lưu JSON" class="bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 px-2.5 py-1.5 rounded text-xs font-medium transition flex items-center gap-1">
                                 <i class="fa-solid fa-download text-slate-500"></i> JSON
                             </button>
-                            <button onclick="document.getElementById('import-file-input').click()" title="Nạp backup dạng JSON" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 px-2 py-1 rounded-sm text-[11px] font-medium transition flex items-center gap-1">
-                                <i class="fa-solid fa-upload text-slate-500"></i> Nạp JSON
+                            <button onclick="document.getElementById('import-file-input').click()" title="Nạp JSON" class="bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 px-2.5 py-1.5 rounded text-xs font-medium transition flex items-center gap-1">
+                                <i class="fa-solid fa-upload text-slate-500"></i> Nạp
                             </button>
                             <input type="file" id="import-file-input" class="hidden" accept=".json" onchange="importJSONBackup(event)">
-                        </div>
 
-                        <button onclick="clearLocalStorage()" class="bg-white hover:bg-red-50 text-red-600 border border-slate-300 hover:border-red-200 px-2.5 py-1.5 rounded-sm text-[11px] font-semibold transition flex items-center gap-1">
-                            <i class="fa-solid fa-trash-arrow-up"></i> Xóa Sạch
-                        </button>
+                            <button onclick="clearLocalStorage()" class="bg-white dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-950/40 text-red-600 dark:text-red-400 border border-slate-300 dark:border-slate-700 px-2.5 py-1.5 rounded text-xs font-semibold transition flex items-center gap-1">
+                                <i class="fa-solid fa-trash-arrow-up"></i> Xóa
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 border-t border-slate-200 dark:border-slate-700/60 pt-2">
+                        <i class="fa-solid fa-shield-halved text-brand-600"></i>
+                        <span>Dữ liệu lưu trữ cá nhân an toàn trên bộ nhớ trình duyệt của bạn.</span>
                     </div>
                 </div>
 
             </div>
 
-            <div class="bg-slate-100 border border-slate-300 p-3.5 rounded-sm text-xs space-y-1.5 text-slate-700">
-                <div class="font-bold text-slate-900 flex items-center gap-1.5">
-                    <i class="fa-solid fa-circle-info text-indigo-700"></i>
-                    Giải trình quy tắc tính toán điểm theo Quy chế:
+            <!-- Audit Explanation Box -->
+            <div class="bg-slate-200/60 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 p-3 sm:p-3.5 rounded text-xs space-y-1.5 text-slate-700 dark:text-slate-300">
+                <div class="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                    <i class="fa-solid fa-circle-info text-brand-600 dark:text-brand-400"></i>
+                    Ghi chú Quy chế Học vụ ĐH Cần Thơ:
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px] leading-relaxed pt-1">
-                    <div class="bg-white p-2.5 border border-slate-200 rounded-sm">
-                        <strong class="text-slate-800">1. Tính ĐTB Chung Học Kỳ (ĐTBCHK - Điều 23.2):</strong>
-                        <p class="text-slate-600 mt-0.5">Bao gồm điểm tất cả các môn đã học trong học kỳ (kể cả điểm <strong>F</strong> và môn <strong>Điều kiện</strong> như GDQP). Loại trừ môn <strong>GDTC</strong>.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-[11px] leading-relaxed pt-1">
+                    <div class="bg-white dark:bg-slate-800 p-2 border border-slate-300 dark:border-slate-700 rounded">
+                        <strong class="text-slate-800 dark:text-slate-200">1. ĐTB Học Kỳ (ĐTBCHK - Điều 23.2):</strong>
+                        <p class="text-slate-600 dark:text-slate-400 mt-0.5">Tính tất cả môn học trong kỳ (gồm điểm <strong>F</strong> & môn <strong>Điều kiện</strong>). Trừ môn GDTC.</p>
                     </div>
-                    <div class="bg-white p-2.5 border border-slate-200 rounded-sm">
-                        <strong class="text-slate-800">2. Tính ĐTB Chung Tích Lũy (ĐTBCTL - Điều 23.4):</strong>
-                        <p class="text-slate-600 mt-0.5">Chỉ tính các học phần <strong>ĐẠT</strong> (từ điểm D / 4.0 trở lên). Tự động loại bỏ hoàn toàn các môn điểm <strong>F</strong>, môn <strong>GDTC</strong> và môn <strong>Điều kiện</strong> ra khỏi tích lũy.</p>
+                    <div class="bg-white dark:bg-slate-800 p-2 border border-slate-300 dark:border-slate-700 rounded">
+                        <strong class="text-slate-800 dark:text-slate-200">2. ĐTB Tích Lũy (ĐTBCTL - Điều 23.4):</strong>
+                        <p class="text-slate-600 dark:text-slate-400 mt-0.5">Chỉ tính môn <strong>ĐẠT (từ điểm D / 1.0 trở lên)</strong>. Loại bỏ điểm F, GDTC & môn Điều kiện.</p>
                     </div>
                 </div>
             </div>
@@ -244,67 +297,70 @@
         </main>
     </div>
 
-    <div id="regulation-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white border border-slate-400 rounded-sm max-w-2xl w-full shadow-xl overflow-hidden text-xs">
-            <div class="bg-slate-900 text-white px-4 py-3 flex justify-between items-center border-b border-slate-800">
+    <!-- Regulation Reference Sheet Modal -->
+    <div id="regulation-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded max-w-2xl w-full shadow-2xl overflow-hidden text-xs text-slate-800 dark:text-slate-200">
+            <div class="bg-brand-600 text-white px-3 sm:px-4 py-2.5 flex justify-between items-center border-b border-brand-700">
                 <h3 class="font-bold uppercase tracking-wider text-xs flex items-center gap-2">
-                    <i class="fa-solid fa-book-bookmark text-indigo-400"></i> Tra Cứu Quy Chế Học Vụ (Điều 21 & Điều 23)
+                    <i class="fa-solid fa-book-bookmark text-brand-400"></i> Tra Cứu Quy Chế CTU (Điều 21 & 23)
                 </h3>
-                <button onclick="toggleRegulationSheet()" class="text-slate-400 hover:text-white transition text-sm">
+                <button onclick="toggleRegulationSheet()" class="text-white/80 hover:text-white transition text-sm p-1">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
             
-            <div class="p-4 space-y-4 max-h-[80vh] overflow-y-auto">
+            <div class="p-3 sm:p-4 space-y-4 max-h-[75vh] overflow-y-auto">
                 <div>
-                    <h4 class="font-bold text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-1 mb-2 text-[11px]">
+                    <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 pb-1 mb-2 text-[11px]">
                         Điều 21. Bảng Quy Đổi Thang Điểm Học Phần
                     </h4>
-                    <table class="w-full text-center border border-slate-300 divide-y divide-slate-200 text-[11px]">
-                        <thead class="bg-slate-100 font-bold text-slate-700">
-                            <tr>
-                                <th class="p-1.5 border-r border-slate-300">Thang Điểm 10</th>
-                                <th class="p-1.5 border-r border-slate-300">Điểm Chữ</th>
-                                <th class="p-1.5 border-r border-slate-300">Thang Điểm 4</th>
-                                <th class="p-1.5">Trạng Thái Tính Tích Lũy</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-200">
-                            <tr><td class="p-1 border-r">9.0 – 10.0</td><td class="p-1 border-r font-bold text-indigo-700">A</td><td class="p-1 border-r font-mono font-bold">4.0</td><td class="p-1 text-emerald-700 font-medium">Đạt (Tính tích lũy)</td></tr>
-                            <tr><td class="p-1 border-r">8.0 – 8.9</td><td class="p-1 border-r font-bold text-indigo-700">B+</td><td class="p-1 border-r font-mono font-bold">3.5</td><td class="p-1 text-emerald-700 font-medium">Đạt (Tính tích lũy)</td></tr>
-                            <tr><td class="p-1 border-r">7.0 – 7.9</td><td class="p-1 border-r font-bold text-indigo-700">B</td><td class="p-1 border-r font-mono font-bold">3.0</td><td class="p-1 text-emerald-700 font-medium">Đạt (Tính tích lũy)</td></tr>
-                            <tr><td class="p-1 border-r">6.5 – 6.9</td><td class="p-1 border-r font-bold text-indigo-700">C+</td><td class="p-1 border-r font-mono font-bold">2.5</td><td class="p-1 text-emerald-700 font-medium">Đạt (Tính tích lũy)</td></tr>
-                            <tr><td class="p-1 border-r">5.5 – 6.4</td><td class="p-1 border-r font-bold text-indigo-700">C</td><td class="p-1 border-r font-mono font-bold">2.0</td><td class="p-1 text-emerald-700 font-medium">Đạt (Tính tích lũy)</td></tr>
-                            <tr><td class="p-1 border-r">5.0 – 5.4</td><td class="p-1 border-r font-bold text-indigo-700">D+</td><td class="p-1 border-r font-mono font-bold">1.5</td><td class="p-1 text-emerald-700 font-medium">Đạt (Tính tích lũy)</td></tr>
-                            <tr><td class="p-1 border-r">4.0 – 4.9</td><td class="p-1 border-r font-bold text-indigo-700">D</td><td class="p-1 border-r font-mono font-bold">1.0</td><td class="p-1 text-emerald-700 font-medium">Đạt (Tính tích lũy)</td></tr>
-                            <tr class="bg-red-50"><td class="p-1 border-r font-bold text-red-700">&lt; 4.0</td><td class="p-1 border-r font-bold text-red-700">F</td><td class="p-1 border-r font-mono font-bold text-red-700">0.0</td><td class="p-1 text-red-700 font-bold">Không Đạt (Không tích lũy)</td></tr>
-                        </tbody>
-                    </table>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-center border border-slate-300 dark:border-slate-700 divide-y divide-slate-200 dark:divide-slate-700 text-[11px]">
+                            <thead class="bg-slate-100 dark:bg-slate-800 font-bold text-slate-700 dark:text-slate-300">
+                                <tr>
+                                    <th class="p-1.5 border-r border-slate-300 dark:border-slate-700">Hệ 10</th>
+                                    <th class="p-1.5 border-r border-slate-300 dark:border-slate-700">Điểm Chữ</th>
+                                    <th class="p-1.5 border-r border-slate-300 dark:border-slate-700">Hệ 4</th>
+                                    <th class="p-1.5">Tích Lũy</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
+                                <tr><td class="p-1 border-r border-slate-200 dark:border-slate-800">9.0 – 10.0</td><td class="p-1 border-r font-bold text-brand-600 dark:text-brand-400">A</td><td class="p-1 border-r font-mono font-bold">4.0</td><td class="p-1 text-emerald-600 font-medium">Đạt</td></tr>
+                                <tr><td class="p-1 border-r border-slate-200 dark:border-slate-800">8.0 – 8.9</td><td class="p-1 border-r font-bold text-brand-600 dark:text-brand-400">B+</td><td class="p-1 border-r font-mono font-bold">3.5</td><td class="p-1 text-emerald-600 font-medium">Đạt</td></tr>
+                                <tr><td class="p-1 border-r border-slate-200 dark:border-slate-800">7.0 – 7.9</td><td class="p-1 border-r font-bold text-brand-600 dark:text-brand-400">B</td><td class="p-1 border-r font-mono font-bold">3.0</td><td class="p-1 text-emerald-600 font-medium">Đạt</td></tr>
+                                <tr><td class="p-1 border-r border-slate-200 dark:border-slate-800">6.5 – 6.9</td><td class="p-1 border-r font-bold text-brand-600 dark:text-brand-400">C+</td><td class="p-1 border-r font-mono font-bold">2.5</td><td class="p-1 text-emerald-600 font-medium">Đạt</td></tr>
+                                <tr><td class="p-1 border-r border-slate-200 dark:border-slate-800">5.5 – 6.4</td><td class="p-1 border-r font-bold text-brand-600 dark:text-brand-400">C</td><td class="p-1 border-r font-mono font-bold">2.0</td><td class="p-1 text-emerald-600 font-medium">Đạt</td></tr>
+                                <tr><td class="p-1 border-r border-slate-200 dark:border-slate-800">5.0 – 5.4</td><td class="p-1 border-r font-bold text-brand-600 dark:text-brand-400">D+</td><td class="p-1 border-r font-mono font-bold">1.5</td><td class="p-1 text-emerald-600 font-medium">Đạt</td></tr>
+                                <tr><td class="p-1 border-r border-slate-200 dark:border-slate-800">4.0 – 4.9</td><td class="p-1 border-r font-bold text-brand-600 dark:text-brand-400">D</td><td class="p-1 border-r font-mono font-bold">1.0</td><td class="p-1 text-emerald-600 font-medium">Đạt</td></tr>
+                                <tr class="bg-red-50 dark:bg-red-950/30"><td class="p-1 border-r border-slate-200 dark:border-slate-800 font-bold text-red-600 dark:text-red-400">&lt; 4.0</td><td class="p-1 border-r font-bold text-red-600 dark:text-red-400">F</td><td class="p-1 border-r font-mono font-bold text-red-600 dark:text-red-400">0.0</td><td class="p-1 text-red-600 dark:text-red-400 font-bold">Không Đạt</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <div>
-                    <h4 class="font-bold text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-1 mb-2 text-[11px]">
+                    <h4 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 pb-1 mb-2 text-[11px]">
                         Điều 23. Quy Chuẩn Xếp Loại Học Tập (Thang 4)
                     </h4>
                     <div class="grid grid-cols-2 gap-2 text-[11px]">
-                        <div class="p-2 border border-slate-200 rounded-sm">Xuất sắc: <strong>3.60 – 4.00</strong></div>
-                        <div class="p-2 border border-slate-200 rounded-sm">Giỏi: <strong>3.20 – 3.59</strong></div>
-                        <div class="p-2 border border-slate-200 rounded-sm">Khá: <strong>2.50 – 3.19</strong></div>
-                        <div class="p-2 border border-slate-200 rounded-sm">Trung bình: <strong>2.00 – 2.49</strong></div>
-                        <div class="p-2 border border-slate-200 rounded-sm">Yếu: <strong>1.00 – 1.99</strong></div>
-                        <div class="p-2 border border-slate-200 rounded-sm">Kém: <strong>&lt; 1.00</strong></div>
+                        <div class="p-1.5 border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-800">Xuất sắc: <strong>3.60 – 4.00</strong></div>
+                        <div class="p-1.5 border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-800">Giỏi: <strong>3.20 – 3.59</strong></div>
+                        <div class="p-1.5 border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-800">Khá: <strong>2.50 – 3.19</strong></div>
+                        <div class="p-1.5 border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-800">Trung bình: <strong>2.00 – 2.49</strong></div>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-slate-100 px-4 py-2.5 text-right border-t border-slate-300">
-                <button onclick="toggleRegulationSheet()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs px-4 py-1.5 rounded-sm font-semibold">Đóng Tra Cứu</button>
+            <div class="bg-slate-100 dark:bg-slate-800 px-4 py-2.5 text-right border-t border-slate-300 dark:border-slate-700">
+                <button onclick="toggleRegulationSheet()" class="bg-brand-600 hover:bg-brand-700 text-white text-xs px-4 py-1.5 rounded font-semibold">Đóng</button>
             </div>
         </div>
     </div>
 
+    <!-- Application Script Engine -->
     <script>
-        const STORAGE_KEY = 'acad_ledger_courses_v1';
+        const STORAGE_KEY = 'ctu_acad_ledger_courses_v1';
+        const THEME_KEY = 'ctu_acad_ledger_theme';
         let courseList = [];
 
         // Calculated State Cache
@@ -315,6 +371,39 @@
             tlGpa10: 0, tlGpa4: 0,
             rankText: 'CHƯA XẾP LOẠI'
         };
+
+        // Theme Manager Engine
+        function initTheme() {
+            const savedTheme = localStorage.getItem(THEME_KEY);
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+            updateThemeUI();
+        }
+
+        function toggleDarkMode() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light');
+            updateThemeUI();
+        }
+
+        function updateThemeUI() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const icon = document.getElementById('theme-icon');
+            const text = document.getElementById('theme-text');
+            
+            if (isDark) {
+                icon.className = 'fa-solid fa-sun text-amber-300';
+                if (text) text.innerText = 'Sáng';
+            } else {
+                icon.className = 'fa-solid fa-moon text-brand-200';
+                if (text) text.innerText = 'Tối';
+            }
+        }
 
         // Grade Converter (Điều 21)
         function evaluateScore(score10) {
@@ -334,6 +423,8 @@
 
         // App Initialization
         document.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+
             const cachedData = localStorage.getItem(STORAGE_KEY);
             if (cachedData) {
                 try { courseList = JSON.parse(cachedData); } catch (e) { courseList = []; }
@@ -345,7 +436,6 @@
             }
         });
 
-        // Save strictly to local browser storage
         function persistState() {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(courseList));
             computeAcademicMetrics();
@@ -385,81 +475,131 @@
         }
 
         function renderGrid() {
-            const tbody = document.getElementById('grid-body');
-            tbody.innerHTML = '';
+            const desktopBody = document.getElementById('grid-body-desktop');
+            const mobileBody = document.getElementById('grid-body-mobile');
+            const emptyState = document.getElementById('empty-state');
+
+            desktopBody.innerHTML = '';
+            mobileBody.innerHTML = '';
 
             document.getElementById('row-count-tag').innerText = courseList.length + ' môn';
 
             if (courseList.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="8" class="text-center py-10 text-slate-400 bg-slate-50/50">
-                            <i class="fa-solid fa-folder-open text-2xl mb-2 block text-slate-300"></i>
-                            Bảng điểm đang trống. Bấm <strong>"Thêm Học Phần"</strong>, <strong>"Nhập Excel"</strong> hoặc <strong>"Nạp Dữ Liệu Mẫu"</strong>.
-                        </td>
-                    </tr>
-                `;
+                emptyState.classList.remove('hidden');
                 computeAcademicMetrics();
                 return;
+            } else {
+                emptyState.classList.add('hidden');
             }
 
             courseList.forEach((item, idx) => {
                 const evalRes = evaluateScore(item.score);
                 const isFail = item.score !== '' && item.score !== null && !evalRes.isPassed;
-                const tr = document.createElement('tr');
-                tr.className = `hover:bg-slate-50 border-b border-slate-200 transition-colors ${isFail ? 'bg-red-50/30' : ''}`;
-
+                
                 let selectedType = 'normal';
                 if (item.isGDTC) selectedType = 'gdtc';
                 if (item.isCondition) selectedType = 'condition';
 
+                // DESKTOP ROW
+                const tr = document.createElement('tr');
+                tr.className = `hover:bg-brand-50/40 dark:hover:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 transition-colors ${isFail ? 'bg-red-50/40 dark:bg-red-950/20' : ''}`;
                 tr.innerHTML = `
-                    <td class="py-2 px-3 text-center font-mono font-semibold text-slate-400 border-r border-slate-200">${idx + 1}</td>
+                    <td class="py-2 px-3 text-center font-mono font-semibold text-slate-400 dark:text-slate-500 border-r border-slate-200 dark:border-slate-800">${idx + 1}</td>
                     
-                    <td class="py-1.5 px-2 border-r border-slate-200">
-                        <input type="text" value="${item.name || ''}" placeholder="Nhập tên học phần..."
+                    <td class="py-1.5 px-2 border-r border-slate-200 dark:border-slate-800">
+                        <input type="text" value="${item.name || ''}" placeholder="Nhập tên môn học..."
                             onchange="updateRowField(${idx}, 'name', this.value)"
-                            class="dense-input w-full bg-slate-50/50 hover:bg-white border border-slate-200 focus:bg-white rounded-sm px-2 py-1 text-xs font-medium text-slate-800">
+                            class="dense-input w-full bg-slate-50/50 dark:bg-slate-900/60 hover:bg-white dark:hover:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-900 rounded px-2 py-1 text-xs font-medium text-slate-800 dark:text-slate-200">
                     </td>
 
-                    <td class="py-1.5 px-2 border-r border-slate-200">
+                    <td class="py-1.5 px-2 border-r border-slate-200 dark:border-slate-800">
                         <input type="number" min="1" max="15" value="${item.credits ?? ''}"
                             onchange="updateRowField(${idx}, 'credits', this.value)"
-                            class="dense-input w-full text-center font-mono font-bold bg-slate-50/50 hover:bg-white border border-slate-200 focus:bg-white rounded-sm px-1.5 py-1 text-xs text-slate-800">
+                            class="dense-input w-full text-center font-mono font-bold bg-slate-50/50 dark:bg-slate-900/60 hover:bg-white dark:hover:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-900 rounded px-1.5 py-1 text-xs text-slate-800 dark:text-slate-200">
                     </td>
 
-                    <td class="py-1.5 px-2 border-r border-slate-200">
+                    <td class="py-1.5 px-2 border-r border-slate-200 dark:border-slate-800">
                         <input type="number" min="0" max="10" step="0.1" value="${item.score ?? ''}" placeholder="0.0 - 10"
                             onchange="updateRowField(${idx}, 'score', this.value)"
-                            class="dense-input w-full text-center font-mono font-bold bg-slate-50/50 hover:bg-white border ${isFail ? 'border-red-300 text-red-600 bg-red-50' : 'border-slate-200 text-slate-900'} focus:bg-white rounded-sm px-1.5 py-1 text-xs">
+                            class="dense-input w-full text-center font-mono font-bold bg-slate-50/50 dark:bg-slate-900/60 hover:bg-white dark:hover:bg-slate-900 border ${isFail ? 'border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30' : 'border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100'} focus:bg-white dark:focus:bg-slate-900 rounded px-1.5 py-1 text-xs">
                     </td>
 
-                    <td class="py-2 px-3 text-center border-r border-slate-200">
-                        <span class="font-mono font-bold px-2 py-0.5 rounded-sm text-xs ${isFail ? 'bg-red-100 text-red-700 border border-red-200' : (evalRes.letter !== '-' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'text-slate-400')}">
+                    <td class="py-2 px-3 text-center border-r border-slate-200 dark:border-slate-800">
+                        <span class="font-mono font-bold px-2 py-0.5 rounded text-xs ${isFail ? 'bg-red-100 dark:bg-red-950/80 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800' : (evalRes.letter !== '-' ? 'bg-brand-50 dark:bg-brand-950/80 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-800' : 'text-slate-400 dark:text-slate-600')}">
                             ${evalRes.letter}
                         </span>
                     </td>
 
-                    <td class="py-2 px-3 text-center font-mono font-bold text-slate-800 border-r border-slate-200">
+                    <td class="py-2 px-3 text-center font-mono font-bold text-slate-800 dark:text-slate-200 border-r border-slate-200 dark:border-slate-800">
                         ${item.score !== '' && item.score !== null ? evalRes.scale4.toFixed(1) : '-'}
                     </td>
 
-                    <td class="py-1.5 px-2 border-r border-slate-200 text-center">
+                    <td class="py-1.5 px-2 border-r border-slate-200 dark:border-slate-800 text-center">
                         <select onchange="updateRowField(${idx}, 'type', this.value)"
-                            class="dense-input bg-slate-50 hover:bg-white border border-slate-200 rounded-sm px-2 py-1 text-[11px] font-semibold ${selectedType==='gdtc' ? 'text-amber-700 bg-amber-50' : (selectedType==='condition' ? 'text-purple-700 bg-purple-50' : 'text-slate-700')}">
-                            <option value="normal" ${selectedType==='normal'?'selected':''}>Môn Thường (Default)</option>
-                            <option value="gdtc" ${selectedType==='gdtc'?'selected':''}>GDTC (Không tính GPA)</option>
-                            <option value="condition" ${selectedType==='condition'?'selected':''}>Điều kiện (Chỉ tính HK)</option>
+                            class="dense-input bg-slate-50 dark:bg-slate-900 hover:bg-white dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-2 py-1 text-[11px] font-semibold ${selectedType==='gdtc' ? 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30' : (selectedType==='condition' ? 'text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/30' : 'text-slate-700 dark:text-slate-300')}">
+                            <option value="normal" ${selectedType==='normal'?'selected':''}>Môn Thường</option>
+                            <option value="gdtc" ${selectedType==='gdtc'?'selected':''}>GDTC (Không GPA)</option>
+                            <option value="condition" ${selectedType==='condition'?'selected':''}>Điều kiện (Chỉ HK)</option>
                         </select>
                     </td>
 
                     <td class="py-2 px-3 text-center">
-                        <button onclick="deleteRow(${idx})" title="Xóa môn" class="text-slate-400 hover:text-red-600 p-1 transition">
+                        <button onclick="deleteRow(${idx})" title="Xóa môn" class="text-slate-400 hover:text-red-600 dark:hover:text-red-400 p-1 transition">
                             <i class="fa-regular fa-trash-can"></i>
                         </button>
                     </td>
                 `;
-                tbody.appendChild(tr);
+                desktopBody.appendChild(tr);
+
+                // MOBILE CARD
+                const mobileCard = document.createElement('div');
+                mobileCard.className = `bg-white dark:bg-slate-900 p-3 rounded border shadow-sm space-y-2.5 transition-colors ${isFail ? 'border-red-200 dark:border-red-900 bg-red-50/30 dark:bg-red-950/20' : 'border-slate-200 dark:border-slate-800'}`;
+                mobileCard.innerHTML = `
+                    <div class="flex items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
+                        <div class="flex items-center gap-2 flex-1">
+                            <span class="font-mono text-xs font-bold text-slate-400 dark:text-slate-500">#${idx + 1}</span>
+                            <input type="text" value="${item.name || ''}" placeholder="Tên môn học..."
+                                onchange="updateRowField(${idx}, 'name', this.value)"
+                                class="dense-input w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded px-2 py-1 text-xs font-semibold text-slate-800 dark:text-slate-200">
+                        </div>
+                        <button onclick="deleteRow(${idx})" class="text-slate-400 hover:text-red-600 dark:hover:text-red-400 p-1.5">
+                            <i class="fa-regular fa-trash-can text-sm"></i>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-0.5">Số Tín Chỉ</label>
+                            <input type="number" min="1" max="15" value="${item.credits ?? ''}"
+                                onchange="updateRowField(${idx}, 'credits', this.value)"
+                                class="dense-input w-full text-center font-mono font-bold bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded py-1 text-xs text-slate-800 dark:text-slate-200">
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-0.5">Điểm Hệ 10</label>
+                            <input type="number" min="0" max="10" step="0.1" value="${item.score ?? ''}" placeholder="0.0 - 10"
+                                onchange="updateRowField(${idx}, 'score', this.value)"
+                                class="dense-input w-full text-center font-mono font-bold bg-slate-50 dark:bg-slate-950 border ${isFail ? 'border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40' : 'border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100'} rounded py-1 text-xs">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 dark:border-slate-800">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] font-bold uppercase text-slate-400 dark:text-slate-500">Kết Quả:</span>
+                            <span class="font-mono font-bold px-1.5 py-0.5 rounded text-xs ${isFail ? 'bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300' : (evalRes.letter !== '-' ? 'bg-brand-50 dark:bg-brand-950 text-brand-700 dark:text-brand-300' : 'text-slate-400 dark:text-slate-600')}">
+                                ${evalRes.letter} (${item.score !== '' && item.score !== null ? evalRes.scale4.toFixed(1) : '-'})
+                            </span>
+                        </div>
+
+                        <select onchange="updateRowField(${idx}, 'type', this.value)"
+                            class="dense-input bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-1 text-[10px] font-semibold ${selectedType==='gdtc' ? 'text-amber-700 dark:text-amber-400' : (selectedType==='condition' ? 'text-purple-700 dark:text-purple-400' : 'text-slate-700 dark:text-slate-300')}">
+                            <option value="normal" ${selectedType==='normal'?'selected':''}>Môn Thường</option>
+                            <option value="gdtc" ${selectedType==='gdtc'?'selected':''}>GDTC</option>
+                            <option value="condition" ${selectedType==='condition'?'selected':''}>Điều Kiện</option>
+                        </select>
+                    </div>
+                `;
+                mobileBody.appendChild(mobileCard);
             });
 
             computeAcademicMetrics();
@@ -478,14 +618,12 @@
 
                 const evalRes = evaluateScore(score10);
 
-                // 1. ĐTBCHK (Điều 23.2)
                 if (!item.isGDTC) {
                     sumHKCredits += credits;
                     sumHKScore10 += score10 * credits;
                     sumHKScore4 += evalRes.scale4 * credits;
                 }
 
-                // 2. ĐTBCTL (Điều 23.4)
                 if (!item.isGDTC && !item.isCondition && evalRes.isPassed) {
                     tcTichLuy += credits;
                     sumTLCredits += credits;
@@ -501,38 +639,31 @@
             const tlGpa4 = sumTLCredits > 0 ? (sumTLScore4 / sumTLCredits) : 0;
 
             let rankText = 'CHƯA XẾP LOẠI';
-            let rankClass = 'text-slate-500';
+            let rankClass = 'text-slate-500 dark:text-slate-400';
 
             if (sumTLCredits > 0) {
-                if (tlGpa4 >= 3.6) { rankText = 'XUẤT SẮC'; rankClass = 'text-purple-700'; }
-                else if (tlGpa4 >= 3.2) { rankText = 'GIỎI'; rankClass = 'text-indigo-700'; }
-                else if (tlGpa4 >= 2.5) { rankText = 'KHÁ'; rankClass = 'text-emerald-700'; }
-                else if (tlGpa4 >= 2.0) { rankText = 'TRUNG BÌNH'; rankClass = 'text-amber-700'; }
-                else if (tlGpa4 >= 1.0) { rankText = 'YẾU'; rankClass = 'text-orange-700'; }
-                else { rankText = 'KÉM'; rankClass = 'text-red-700'; }
+                if (tlGpa4 >= 3.6) { rankText = 'XUẤT SẮC'; rankClass = 'text-purple-600 dark:text-purple-400'; }
+                else if (tlGpa4 >= 3.2) { rankText = 'GIỎI'; rankClass = 'text-brand-600 dark:text-brand-400'; }
+                else if (tlGpa4 >= 2.5) { rankText = 'KHÁ'; rankClass = 'text-emerald-600 dark:text-emerald-400'; }
+                else if (tlGpa4 >= 2.0) { rankText = 'TRUNG BÌNH'; rankClass = 'text-amber-600 dark:text-amber-400'; }
+                else if (tlGpa4 >= 1.0) { rankText = 'YẾU'; rankClass = 'text-orange-600 dark:text-orange-400'; }
+                else { rankText = 'KÉM'; rankClass = 'text-red-600 dark:text-red-400'; }
             }
 
             calculatedMetrics = { tcTichLuy, sumTLScore4, hkGpa10, hkGpa4, tlGpa10, tlGpa4, rankText };
 
             document.getElementById('metric-tc').innerText = tcTichLuy;
-
             document.getElementById('metric-gpa-hk4').innerText = hkGpa4.toFixed(2);
             document.getElementById('metric-gpa-hk10').innerText = `/ 10: ${hkGpa10.toFixed(2)}`;
-
             document.getElementById('metric-gpa-tl4').innerText = tlGpa4.toFixed(2);
             document.getElementById('metric-gpa-tl10').innerText = `/ 10: ${tlGpa10.toFixed(2)}`;
 
             const rankEl = document.getElementById('metric-rank');
             rankEl.innerText = rankText;
-            rankEl.className = `text-base font-bold uppercase tracking-wide mt-1.5 ${rankClass}`;
+            rankEl.className = `text-sm sm:text-base font-bold uppercase tracking-wide mt-1 truncate ${rankClass}`;
 
-            // Trigger prediction recalculation
             calculateGraduationTarget();
         }
-
-        // =======================================================
-        // GRADUATION TARGET PREDICTION ENGINE
-        // =======================================================
 
         function calculateGraduationTarget() {
             const totalTargetCredits = parseFloat(document.getElementById('target-total-credits').value) || 120;
@@ -541,7 +672,7 @@
             document.getElementById('target-total-display').innerText = totalTargetCredits;
 
             const currentPassedCredits = calculatedMetrics.tcTichLuy;
-            const currentTotalPoints = calculatedMetrics.sumTLScore4; // Sum(Credits * Scale4)
+            const currentTotalPoints = calculatedMetrics.sumTLScore4;
 
             const remainingCredits = Math.max(0, totalTargetCredits - currentPassedCredits);
             document.getElementById('target-remaining-tc').innerText = remainingCredits;
@@ -552,31 +683,30 @@
                 const finalGPA = calculatedMetrics.tlGpa4;
                 const isGoalReached = finalGPA >= targetGPA;
                 container.innerHTML = `
-                    <div class="p-3 border rounded-sm ${isGoalReached ? 'bg-emerald-50 border-emerald-300 text-emerald-900' : 'bg-amber-50 border-amber-300 text-amber-900'}">
-                        <div class="font-bold text-xs flex items-center gap-2">
-                            <i class="fa-solid ${isGoalReached ? 'fa-circle-check text-emerald-600' : 'fa-triangle-exclamation text-amber-600'}"></i>
-                            ${isGoalReached ? 'ĐÃ ĐẠT MỤC TIÊU TỐT NGHIỆP!' : 'ĐÃ HOÀN THÀNH TỔNG TÍN CHỈ NHƯNG CHƯA ĐẠT MỤC TIÊU XẾP LOẠI'}
+                    <div class="p-3 border rounded ${isGoalReached ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200' : 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200'}">
+                        <div class="font-bold text-xs flex items-center gap-1.5">
+                            <i class="fa-solid ${isGoalReached ? 'fa-circle-check text-emerald-600 dark:text-emerald-400' : 'fa-triangle-exclamation text-amber-600 dark:text-amber-400'}"></i>
+                            ${isGoalReached ? 'ĐÃ ĐẠT MỤC TIÊU TỐT NGHIỆP!' : 'ĐÃ HOÀN THÀNH TỔNG TC NHƯNG CHƯA ĐẠT HẠNG'}
                         </div>
-                        <p class="text-[11px] mt-1">ĐTBCTL thực tế của bạn là <strong>${finalGPA.toFixed(2)}</strong> (Mục tiêu: <strong>${targetGPA.toFixed(2)}</strong>).</p>
+                        <p class="text-[11px] mt-1">ĐTBCTL thực tế: <strong>${finalGPA.toFixed(2)}</strong> (Mục tiêu: <strong>${targetGPA.toFixed(2)}</strong>).</p>
                     </div>
                 `;
                 return;
             }
 
-            // Total grade points needed for graduation
             const requiredTotalPoints = totalTargetCredits * targetGPA;
             const neededPointsFromRemaining = requiredTotalPoints - currentTotalPoints;
             const requiredAvgGPAForRemaining = neededPointsFromRemaining / remainingCredits;
 
             if (requiredAvgGPAForRemaining > 4.0) {
                 container.innerHTML = `
-                    <div class="p-3 bg-red-50 border border-red-200 rounded-sm text-red-900 space-y-1">
-                        <div class="font-bold text-xs flex items-center gap-1.5 text-red-700">
-                            <i class="fa-solid fa-circle-xmark"></i> MỤC TIÊU KHÔNG KHẢ THI (VƯỢT QUÁ TRẦN ĐIỂM HỆ 4)
+                    <div class="p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded text-red-900 dark:text-red-200 space-y-1">
+                        <div class="font-bold text-xs flex items-center gap-1.5 text-red-700 dark:text-red-400">
+                            <i class="fa-solid fa-circle-xmark"></i> KHÔNG KHẢ THI (VƯỢT TRẦN ĐIỂM HỆ 4)
                         </div>
                         <p class="text-[11px] leading-relaxed">
-                            Để đạt xếp loại mục tiêu (GPA ≥ ${targetGPA.toFixed(2)}), ĐTB các môn còn lại (${remainingCredits} TC) của bạn phải đạt <strong>${requiredAvgGPAForRemaining.toFixed(2)} / 4.0</strong>. 
-                            Ngay cả khi bạn đạt toàn bộ điểm <strong>A (4.0)</strong> ở tất cả các môn còn lại, ĐTBCTL tối đa thu được cũng chỉ đạt <strong>${((currentTotalPoints + remainingCredits * 4.0) / totalTargetCredits).toFixed(2)}</strong>.
+                            Cần ĐTB <strong>${requiredAvgGPAForRemaining.toFixed(2)} / 4.0</strong> cho ${remainingCredits} TC còn lại. 
+                            Dù đạt 100% điểm A (4.0) các môn còn lại, ĐTBCTL tối đa thu được chỉ đạt <strong>${((currentTotalPoints + remainingCredits * 4.0) / totalTargetCredits).toFixed(2)}</strong>.
                         </p>
                     </div>
                 `;
@@ -585,67 +715,57 @@
 
             if (requiredAvgGPAForRemaining <= 0) {
                 container.innerHTML = `
-                    <div class="p-3 bg-emerald-50 border border-emerald-300 rounded-sm text-emerald-900 space-y-1">
-                        <div class="font-bold text-xs flex items-center gap-1.5 text-emerald-700">
+                    <div class="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 rounded text-emerald-900 dark:text-emerald-200 space-y-1">
+                        <div class="font-bold text-xs flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400">
                             <i class="fa-solid fa-circle-check"></i> AN TOÀN TUYỆT ĐỐI
                         </div>
-                        <p class="text-[11px]">Điểm tích lũy hiện tại của bạn đã đủ để chắc chắn đạt xếp loại mục tiêu. Bạn chỉ cần hoàn thành pass tất cả các môn còn lại (từ điểm D 1.0 trở lên).</p>
+                        <p class="text-[11px]">Điểm hiện tại đã chắc chắn đạt mục tiêu tốt nghiệp. Chỉ cần học đạt (pass) các môn còn lại.</p>
                     </div>
                 `;
                 return;
             }
 
-            // Scenario Breakdown Calculations
-            // Scenario 1: Min A (4.0) and remaining B (3.0)
-            // 4.0 * x + 3.0 * (Rem - x) >= NeededPoints  => x >= NeededPoints - 3*Rem
             let minTC_A_with_B = Math.ceil(neededPointsFromRemaining - (3.0 * remainingCredits));
             if (minTC_A_with_B < 0) minTC_A_with_B = 0;
             if (minTC_A_with_B > remainingCredits) minTC_A_with_B = remainingCredits;
             let remainingTC_B = remainingCredits - minTC_A_with_B;
 
-            // Scenario 2: Min A (4.0) and remaining B+ (3.5)
-            // 4.0 * y + 3.5 * (Rem - y) >= NeededPoints => 0.5 * y >= NeededPoints - 3.5*Rem
             let minTC_A_with_BPlus = Math.ceil((neededPointsFromRemaining - (3.5 * remainingCredits)) / 0.5);
             if (minTC_A_with_BPlus < 0) minTC_A_with_BPlus = 0;
             if (minTC_A_with_BPlus > remainingCredits) minTC_A_with_BPlus = remainingCredits;
             let remainingTC_BPlus = remainingCredits - minTC_A_with_BPlus;
 
             container.innerHTML = `
-                <div class="bg-indigo-50/70 border border-indigo-200 p-3 rounded-sm space-y-2">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-indigo-200 pb-2">
-                        <div class="text-xs font-bold text-indigo-900">
-                            <i class="fa-solid fa-calculator text-indigo-600"></i> ĐTB Cần Đạt Cho ${remainingCredits} Tín Chỉ Còn Lại: 
-                            <span class="font-mono text-indigo-700 font-extrabold text-sm">${requiredAvgGPAForRemaining.toFixed(2)} / 4.0</span>
+                <div class="bg-brand-50/70 dark:bg-slate-800/80 border border-brand-200 dark:border-slate-700 p-3 rounded space-y-2">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-brand-200 dark:border-slate-700 pb-2">
+                        <div class="text-xs font-bold text-brand-900 dark:text-brand-300">
+                            <i class="fa-solid fa-calculator text-brand-600 dark:text-brand-400"></i> ĐTB Cần Đạt Cho ${remainingCredits} TC Còn Lại: 
+                            <span class="font-mono text-brand-700 dark:text-brand-400 font-extrabold text-sm">${requiredAvgGPAForRemaining.toFixed(2)} / 4.0</span>
                         </div>
-                        <span class="text-[10px] text-indigo-700 bg-white border border-indigo-200 px-2 py-0.5 rounded font-medium">Mức độ: ${requiredAvgGPAForRemaining >= 3.5 ? 'Rất Cao (Cần chủ yếu A/B+)' : (requiredAvgGPAForRemaining >= 3.0 ? 'Vừa Phải (Cần chủ yếu B/B+)' : 'Dễ Dàng')}</span>
                     </div>
 
-                    <div class="text-[11px] font-bold uppercase text-slate-700 pt-0.5">Các Kịch Bản Phân Bổ Tín Chỉ Gợi Ý Cho ${remainingCredits} TC Còn Thiếu:</div>
+                    <div class="text-[10px] sm:text-[11px] font-bold uppercase text-slate-700 dark:text-slate-300 pt-0.5">Kịch Bản Phân Bổ Tín Chỉ Gợi Ý Cho ${remainingCredits} TC:</div>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
-                        
-                        <div class="bg-white p-2.5 border border-slate-200 rounded-sm space-y-1">
-                            <div class="font-bold text-slate-800 text-[11px] flex items-center justify-between">
-                                <span><i class="fa-solid fa-list-check text-indigo-600"></i> Kịch bản Điểm A & Điểm B</span>
-                                <span class="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">A (4.0) + B (3.0)</span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        <div class="bg-white dark:bg-slate-900 p-2.5 border border-slate-200 dark:border-slate-700 rounded space-y-1">
+                            <div class="font-bold text-slate-800 dark:text-slate-200 text-[11px] flex items-center justify-between">
+                                <span><i class="fa-solid fa-list-check text-brand-600 dark:text-brand-400"></i> Kịch bản A + B</span>
                             </div>
-                            <div class="text-[11px] text-slate-600 leading-relaxed">
-                                • Cần ít nhất <strong class="text-indigo-700 font-mono">${minTC_A_with_B} TC</strong> đạt <strong>Điểm A (4.0)</strong><br>
-                                • Số <strong class="text-slate-800 font-mono">${remainingTC_B} TC</strong> còn lại đạt tối thiểu <strong>Điểm B (3.0)</strong>
+                            <div class="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                                • Cần ít nhất <strong class="text-brand-600 dark:text-brand-400 font-mono">${minTC_A_with_B} TC</strong> điểm <strong>A (4.0)</strong><br>
+                                • Còn lại <strong class="text-slate-800 dark:text-slate-200 font-mono">${remainingTC_B} TC</strong> điểm <strong>B (3.0)</strong>
                             </div>
                         </div>
 
-                        <div class="bg-white p-2.5 border border-slate-200 rounded-sm space-y-1">
-                            <div class="font-bold text-slate-800 text-[11px] flex items-center justify-between">
-                                <span><i class="fa-solid fa-list-check text-emerald-600"></i> Kịch bản Điểm A & Điểm B+</span>
-                                <span class="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">A (4.0) + B+ (3.5)</span>
+                        <div class="bg-white dark:bg-slate-900 p-2.5 border border-slate-200 dark:border-slate-700 rounded space-y-1">
+                            <div class="font-bold text-slate-800 dark:text-slate-200 text-[11px] flex items-center justify-between">
+                                <span><i class="fa-solid fa-list-check text-emerald-600 dark:text-emerald-400"></i> Kịch bản A + B+</span>
                             </div>
-                            <div class="text-[11px] text-slate-600 leading-relaxed">
-                                • Cần ít nhất <strong class="text-emerald-700 font-mono">${minTC_A_with_BPlus} TC</strong> đạt <strong>Điểm A (4.0)</strong><br>
-                                • Số <strong class="text-slate-800 font-mono">${remainingTC_BPlus} TC</strong> còn lại đạt tối thiểu <strong>Điểm B+ (3.5)</strong>
+                            <div class="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                                • Cần ít nhất <strong class="text-emerald-600 dark:text-emerald-400 font-mono">${minTC_A_with_BPlus} TC</strong> điểm <strong>A (4.0)</strong><br>
+                                • Còn lại <strong class="text-slate-800 dark:text-slate-200 font-mono">${remainingTC_BPlus} TC</strong> điểm <strong>B+ (3.5)</strong>
                             </div>
                         </div>
-
                     </div>
                 </div>
             `;
@@ -663,57 +783,42 @@
             persistState();
         }
 
-        // =======================================================
-        // EXCEL EXPORT & IMPORT ENGINE (CLIENT-SIDE)
-        // =======================================================
-
         function exportExcelPro() {
             if (!courseList || courseList.length === 0) {
-                alert("Bảng điểm hiện tại đang trống, không thể xuất file Excel!");
+                alert("Bảng điểm trống!");
                 return;
             }
 
             computeAcademicMetrics();
             const now = new Date();
-            const timeStr = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+            const timeStr = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()}`;
 
-            // Build Array of Arrays (AOA) for Layout
             const aoa = [];
+            aoa.push(["BẢNG TỔNG HỢP & MỤC TIÊU TỐT NGHIỆP - ĐẠI HỌC CẦN THƠ"]);
+            aoa.push([`Ngày xuất: ${timeStr} | Quy chế: Điều 21 & Điều 23`]);
+            aoa.push([]);
 
-            // Header Section
-            aoa.push(["KẾT QUẢ HỌC TẬP SINH VIÊN"]);
-            aoa.push([`Ngày xuất báo cáo: ${timeStr}`]);
-            aoa.push([]); // Blank row
-
-            // Section I: Summary Metrics Block
-            aoa.push(["I. KẾT QUẢ TỔNG KẾT HỌC VỤ"]);
-            aoa.push(["Tên Chỉ Số", "Giá Trị Thang 4.0", "Giá Trị Thang 10.0 / Ghi Chú"]);
-            aoa.push(["Tổng số tín chỉ tích lũy (Đạt)", `${calculatedMetrics.tcTichLuy} Tín chỉ`, "Không tính điểm F, GDTC & Điều kiện"]);
+            aoa.push(["I. KẾT QUẢ TỔNG KẾT"]);
+            aoa.push(["Tên Chỉ Số", "Giá Trị Thang 4.0", "Thang 10 / Ghi Chú"]);
+            aoa.push(["Tổng số tín chỉ tích lũy (Đạt)", `${calculatedMetrics.tcTichLuy} TC`, "Trừ F, GDTC, ĐK"]);
             aoa.push(["ĐTB Chung Học Kỳ (ĐTBCHK)", calculatedMetrics.hkGpa4.toFixed(2), calculatedMetrics.hkGpa10.toFixed(2)]);
             aoa.push(["ĐTB Chung Tích Lũy (ĐTBCTL)", calculatedMetrics.tlGpa4.toFixed(2), calculatedMetrics.tlGpa10.toFixed(2)]);
-            aoa.push(["Xếp loại học tập tích lũy", calculatedMetrics.rankText, "Căn cứ theo ĐTBCTL Thang 4.0"]);
-            aoa.push([]); // Blank row
+            aoa.push(["Xếp loại học tập", calculatedMetrics.rankText, "Thang 4.0"]);
+            aoa.push([]);
 
-            // Section II: Detail Course Table Header
-            aoa.push(["II. CHI TIẾT BẢNG ĐIỂM CÁC HỌC PHẦN"]);
-            aoa.push(["STT", "Tên Học Phần / Môn Học", "Số Tín Chỉ", "Điểm Hệ 10", "Điểm Chữ", "Điểm Hệ 4", "Phân Loại Môn (Điều 23)"]);
+            aoa.push(["II. CHI TIẾT HỌC PHẦN"]);
+            aoa.push(["STT", "Tên Học Phần", "Số Tín Chỉ", "Điểm Hệ 10", "Điểm Chữ", "Điểm Hệ 4", "Phân Loại"]);
 
-            let totalCreditsInTable = 0;
-
-            // Course Rows
             courseList.forEach((item, idx) => {
                 const evalRes = evaluateScore(item.score);
                 let typeStr = "Môn Thường";
-                if (item.isGDTC) typeStr = "GDTC (Không tính GPA)";
-                if (item.isCondition) typeStr = "Điều Kiện (Chỉ tính HK)";
-
-                const creds = parseFloat(item.credits) || 0;
-                totalCreditsInTable += creds;
+                if (item.isGDTC) typeStr = "GDTC";
+                if (item.isCondition) typeStr = "Điều Kiện";
 
                 aoa.push([
                     idx + 1,
                     item.name || "",
-                    creds,
+                    parseFloat(item.credits) || 0,
                     (item.score !== '' && item.score !== null) ? parseFloat(item.score) : "",
                     evalRes.letter,
                     (item.score !== '' && item.score !== null) ? evalRes.scale4 : "",
@@ -721,40 +826,12 @@
                 ]);
             });
 
-            // Summary Footer Row
-            aoa.push([
-                "",
-                "TỔNG CỘNG TÍN CHỈ ĐÃ HỌC",
-                totalCreditsInTable,
-                "", "", "", ""
-            ]);
-
             const worksheet = XLSX.utils.aoa_to_sheet(aoa);
-
-            // Auto Column Widths
-            worksheet['!cols'] = [
-                { wch: 8 },  // STT
-                { wch: 35 }, // Tên Học Phần
-                { wch: 14 }, // Tín Chỉ
-                { wch: 14 }, // Điểm Hệ 10
-                { wch: 12 }, // Điểm Chữ
-                { wch: 14 }, // Điểm Hệ 4
-                { wch: 28 }  // Phân Loại Môn
-            ];
-
-            // Merge Cells
-            worksheet['!merges'] = [
-                { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } },
-                { s: { r: 1, c: 0 }, e: { r: 1, c: 6 } },
-                { s: { r: 3, c: 0 }, e: { r: 3, c: 6 } },
-                { s: { r: 9, c: 0 }, e: { r: 9, c: 6 } }
-            ];
-
+            worksheet['!cols'] = [{ wch: 6 }, { wch: 30 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 12 }, { wch: 20 }];
+            
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Bang_Diem_Hoc_Tap");
-
-            const dateFileStr = now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0');
-            XLSX.writeFile(workbook, `Bang_Diem_Hoc_Tap_${dateFileStr}.xlsx`);
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Bang_Diem_CTU");
+            XLSX.writeFile(workbook, `Bang_Diem_CTU_${now.getTime()}.xlsx`);
         }
 
         function importExcel(event) {
@@ -766,17 +843,14 @@
                 try {
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
-                    
-                    const firstSheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[firstSheetName];
+                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
                     const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
                     if (!rawRows || rawRows.length < 2) {
-                        alert("File Excel không chứa dữ liệu hợp lệ!");
+                        alert("File Excel trống!");
                         return;
                     }
 
-                    // Dynamic Header Finder
                     let headerRowIdx = -1;
                     for (let i = 0; i < rawRows.length; i++) {
                         const line = (rawRows[i] || []).map(cell => String(cell || '').toLowerCase()).join(' ');
@@ -789,11 +863,10 @@
                     if (headerRowIdx === -1) headerRowIdx = 0;
 
                     const headers = rawRows[headerRowIdx].map(h => String(h || '').trim().toLowerCase());
-                    
-                    let colName = headers.findIndex(h => h.includes('tên') || h.includes('môn') || h.includes('học phần'));
-                    let colCredits = headers.findIndex(h => h.includes('tín') || h.includes('tc') || h.includes('stc'));
-                    let colScore = headers.findIndex(h => h.includes('điểm') || h.includes('10') || h.includes('score'));
-                    let colType = headers.findIndex(h => h.includes('loại') || h.includes('phân loại') || h.includes('ghi chú'));
+                    let colName = headers.findIndex(h => h.includes('tên') || h.includes('môn'));
+                    let colCredits = headers.findIndex(h => h.includes('tín') || h.includes('tc'));
+                    let colScore = headers.findIndex(h => h.includes('điểm') || h.includes('10'));
+                    let colType = headers.findIndex(h => h.includes('loại') || h.includes('phân loại'));
 
                     if (colName === -1) colName = 1; 
                     if (colCredits === -1) colCredits = 2;
@@ -807,33 +880,23 @@
                         if (!row || row.length === 0) continue;
 
                         const name = row[colName] !== undefined ? String(row[colName]).trim() : '';
-                        
-                        if (name.toUpperCase().includes('TỔNG CỘNG') || name.toUpperCase().includes('TRUNG BÌNH')) {
-                            continue;
-                        }
+                        if (name.toUpperCase().includes('TỔNG CỘNG') || name.toUpperCase().includes('TRUNG BÌNH')) continue;
 
                         const creditsRaw = row[colCredits];
                         const scoreRaw = row[colScore];
                         const typeRaw = row[colType] ? String(row[colType]).toLowerCase() : '';
 
-                        if (!name && (creditsRaw === undefined || creditsRaw === '') && (scoreRaw === undefined || scoreRaw === '')) {
-                            continue;
-                        }
+                        if (!name && (creditsRaw === undefined || creditsRaw === '') && (scoreRaw === undefined || scoreRaw === '')) continue;
 
                         const credits = parseFloat(creditsRaw) || 3;
                         const score = (scoreRaw !== undefined && scoreRaw !== '' && !isNaN(scoreRaw)) ? parseFloat(scoreRaw) : '';
 
-                        let isGDTC = false;
-                        let isCondition = false;
-
-                        if (typeRaw.includes('gdtc') || typeRaw.includes('thể chất')) {
-                            isGDTC = true;
-                        } else if (typeRaw.includes('điều kiện') || typeRaw.includes('đk') || typeRaw.includes('quốc phòng') || typeRaw.includes('gdqp')) {
-                            isCondition = true;
-                        }
+                        let isGDTC = false, isCondition = false;
+                        if (typeRaw.includes('gdtc') || typeRaw.includes('thể chất')) isGDTC = true;
+                        else if (typeRaw.includes('điều kiện') || typeRaw.includes('đk') || typeRaw.includes('quốc phòng')) isCondition = true;
 
                         newCourseList.push({
-                            uid: 'c_ex_' + Date.now() + '_' + i + '_' + Math.floor(Math.random()*1000),
+                            uid: 'c_ex_' + Date.now() + '_' + i,
                             name: name,
                             credits: credits,
                             score: score,
@@ -842,37 +905,28 @@
                         });
                     }
 
-                    if (newCourseList.length === 0) {
-                        alert("Không tìm thấy dữ liệu học phần hợp lệ từ file Excel!");
-                        return;
-                    }
-
-                    if (confirm(`Đã phát hiện ${newCourseList.length} học phần từ file Excel. Bạn có muốn nạp vào bảng điểm hiện tại không?`)) {
+                    if (newCourseList.length > 0) {
                         courseList = newCourseList;
                         renderGrid();
                         persistState();
-                        alert(`Nhập thành công ${newCourseList.length} học phần từ file Excel!`);
+                        alert(`Đã nạp ${newCourseList.length} học phần thành công!`);
                     }
-
                 } catch (err) {
                     alert('Lỗi đọc file Excel: ' + err.message);
                 }
-
                 event.target.value = '';
             };
-
             reader.readAsArrayBuffer(file);
         }
 
-        // JSON Backup/Restore
         function exportJSONBackup() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(courseList, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `bang-diem-backup.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
+            const dl = document.createElement('a');
+            dl.setAttribute("href", dataStr);
+            dl.setAttribute("download", `bang-diem-ctu-backup.json`);
+            document.body.appendChild(dl);
+            dl.click();
+            dl.remove();
         }
 
         function importJSONBackup(event) {
@@ -884,21 +938,15 @@
                         courseList = imported;
                         renderGrid();
                         persistState();
-                        alert('Đã khôi phục dữ liệu JSON thành công!');
-                    } else {
-                        alert('Cấu trúc file JSON không hợp lệ!');
+                        alert('Khôi phục JSON thành công!');
                     }
-                } catch (err) {
-                    alert('Lỗi đọc file JSON: ' + err.message);
-                }
+                } catch (err) { alert('Lỗi đọc JSON: ' + err.message); }
             };
-            if (event.target.files[0]) {
-                fileReader.readAsText(event.target.files[0]);
-            }
+            if (event.target.files[0]) fileReader.readAsText(event.target.files[0]);
         }
 
         function clearLocalStorage() {
-            if (confirm('Xác nhận xóa toàn bộ dữ liệu bảng điểm đang lưu trên máy tính?')) {
+            if (confirm('Xóa sạch toàn bộ dữ liệu hiện tại?')) {
                 localStorage.removeItem(STORAGE_KEY);
                 courseList = [];
                 renderGrid();
@@ -907,8 +955,7 @@
         }
 
         function toggleRegulationSheet() {
-            const modal = document.getElementById('regulation-modal');
-            modal.classList.toggle('hidden');
+            document.getElementById('regulation-modal').classList.toggle('hidden');
         }
     </script>
 </body>
