@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Công Cụ Tính Điểm Trung Bình Học Kỳ & Tích Lũy</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-header { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); }
+        .card-shadow { box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05); }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between">
+
+    <div>
+        <!-- Header Banner -->
+        <header class="gradient-header text-white py-8 px-4 shadow-lg">
+            <div class="max-w-6xl mx-auto text-center md:text-left flex flex-col md:flex-row justify-between items-center gap-4">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-bold tracking-tight flex items-center justify-center md:justify-start gap-3">
+                        <i class="fa-solid fa-graduation-cap text-yellow-300"></i>
+                        Tính Điểm Trung Bình Học Kỳ & Tích Lũy
+                    </h1>
+                    <p class="text-blue-100 text-sm mt-1">Chuẩn Quy định Điều 21 & Điều 23 (Thang điểm 10 & Thang điểm 4)</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="toggleRuleModal()" class="bg-white/20 hover:bg-white/30 text-white text-xs md:text-sm px-3 py-2 rounded-lg backdrop-blur-sm transition flex items-center gap-1.5 border border-white/20">
+                        <i class="fa-solid fa-book-open"></i> Xem Quy Định
+                    </button>
+                    <button onclick="loadSampleData()" class="bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-medium text-xs md:text-sm px-3 py-2 rounded-lg transition flex items-center gap-1.5 shadow">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Mẫu Điểm
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Dashboard -->
+        <main class="max-w-6xl mx-auto px-4 py-8 space-y-8">
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-5 border border-slate-200 card-shadow">
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">TC Tích Lũy</p>
+                    <h3 id="stat-tc-tl" class="text-2xl font-bold text-slate-800 mt-1">0</h3>
+                    <p class="text-[11px] text-slate-400 mt-2">Đã đạt (trừ F & Điều kiện)</p>
+                </div>
+
+                <div class="bg-white rounded-xl p-5 border border-slate-200 card-shadow">
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">ĐTB Chung Học Kỳ</p>
+                    <div class="flex items-baseline gap-2 mt-1">
+                        <h3 id="stat-gpa-hk4" class="text-2xl font-bold text-blue-600">0.00</h3>
+                        <span id="stat-gpa-hk10" class="text-xs font-medium text-slate-500">(10: 0.00)</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-2">Bao gồm cả F & Điều kiện</p>
+                </div>
+
+                <div class="bg-white rounded-xl p-5 border border-slate-200 card-shadow">
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">ĐTB Tích Lũy</p>
+                    <div class="flex items-baseline gap-2 mt-1">
+                        <h3 id="stat-gpa-tl4" class="text-2xl font-bold text-emerald-600">0.00</h3>
+                        <span id="stat-gpa-tl10" class="text-xs font-medium text-slate-500">(10: 0.00)</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-2">Chỉ tính các môn đã tích lũy</p>
+                </div>
+
+                <div class="bg-white rounded-xl p-5 border border-slate-200 card-shadow">
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Xếp Loại Học Tập</p>
+                    <h3 id="stat-rank" class="text-lg font-bold text-purple-600 mt-1">Chưa xếp loại</h3>
+                    <p class="text-[11px] text-slate-400 mt-2">Căn cứ theo ĐTB Tích lũy</p>
+                </div>
+            </div>
+
+            <!-- Subject Table -->
+            <div class="bg-white rounded-xl border border-slate-200 card-shadow overflow-hidden">
+                <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50/50">
+                    <div>
+                        <h2 class="font-bold text-slate-800 text-lg flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-blue-600"></i> Danh Sách Học Phần
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Nhập tên môn, tín chỉ và điểm hệ 10 để hệ thống tự quy đổi</p>
+                    </div>
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <button onclick="addRow()" class="flex-1 sm:flex-initial bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs px-4 py-2 rounded-lg transition flex items-center justify-center gap-1.5 shadow-sm">
+                            <i class="fa-solid fa-plus"></i> Thêm môn
+                        </button>
+                        <button onclick="clearAll()" class="bg-red-50 hover:bg-red-100 text-red-600 font-medium text-xs px-3 py-2 rounded-lg transition flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-trash-can"></i> Xóa hết
+                        </button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100/80 text-slate-600 text-xs uppercase tracking-wider border-b border-slate-200">
+                                <th class="p-3 pl-5 font-semibold w-12 text-center">STT</th>
+                                <th class="p-3 font-semibold min-w-[180px]">Tên Học Phần</th>
+                                <th class="p-3 font-semibold w-24 text-center">Số TC</th>
+                                <th class="p-3 font-semibold w-32 text-center">Điểm Hệ 10</th>
+                                <th class="p-3 font-semibold w-24 text-center">Điểm Chữ</th>
+                                <th class="p-3 font-semibold w-24 text-center">Điểm Hệ 4</th>
+                                <th class="p-3 font-semibold w-40 text-center">Phân Loại / Tùy Chọn</th>
+                                <th class="p-3 pr-5 font-semibold w-16 text-center">Xóa</th>
+                            </tr>
+                        </thead>
+                        <tbody id="subject-list" class="divide-y divide-slate-100 text-sm"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Quy Định -->
+    <div id="rule-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl">
+            <h3 class="font-bold text-slate-800 text-lg border-b pb-2">Bảng Quy Đổi Điểm (Điều 21 & 23)</h3>
+            <p class="text-xs text-slate-600"><strong>GDTC:</strong> Không tính vào cả ĐTBCHK và ĐTBCTL.<br><strong>Học phần Điều kiện (VD: Quốc phòng):</strong> Có tính vào ĐTBCHK, nhưng KHÔNG tính vào ĐTBCTL.</p>
+            <button onclick="toggleRuleModal()" class="w-full bg-blue-600 text-white font-medium text-xs py-2 rounded-lg">Đóng</button>
+        </div>
+    </div>
+
+    <script>
+        let subjects = [];
+
+        function convertScore(score10) {
+            if (score10 === '' || score10 === null || isNaN(score10)) return { letter: '-', scale4: 0, passed: false };
+            const s = parseFloat(score10);
+            if (s >= 9.0) return { letter: 'A', scale4: 4.0, passed: true };
+            if (s >= 8.0) return { letter: 'B+', scale4: 3.5, passed: true };
+            if (s >= 7.0) return { letter: 'B', scale4: 3.0, passed: true };
+            if (s >= 6.5) return { letter: 'C+', scale4: 2.5, passed: true };
+            if (s >= 5.5) return { letter: 'C', scale4: 2.0, passed: true };
+            if (s >= 5.0) return { letter: 'D+', scale4: 1.5, passed: true };
+            if (s >= 4.0) return { letter: 'D', scale4: 1.0, passed: true };
+            return { letter: 'F', scale4: 0.0, passed: false };
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const saved = localStorage.getItem('gpa_subjects');
+            if (saved) { try { subjects = JSON.parse(saved); } catch(e) { subjects = []; } }
+            if (!subjects || subjects.length === 0) loadSampleData();
+            else renderTable();
+        });
+
+        function saveState() {
+            localStorage.setItem('gpa_subjects', JSON.stringify(subjects));
+            calculateGPA();
+        }
+
+        function addRow(data = { name: '', credits: 3, score: '', isGDTC: false, isCondition: false }) {
+            subjects.push({ id: Date.now() + Math.random(), ...data });
+            renderTable();
+            saveState();
+        }
+
+        function deleteRow(index) {
+            subjects.splice(index, 1);
+            renderTable();
+            saveState();
+        }
+
+        function clearAll() {
+            if (confirm('Xóa tất cả môn học?')) { subjects = []; renderTable(); saveState(); }
+        }
+
+        function updateField(index, field, value) {
+            if (field === 'credits' || field === 'score') subjects[index][field] = value === '' ? '' : parseFloat(value);
+            else subjects[index][field] = value;
+            renderTable();
+            saveState();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('subject-list');
+            tbody.innerHTML = '';
+            subjects.forEach((sub, idx) => {
+                const converted = convertScore(sub.score);
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 border-b border-slate-100";
+                tr.innerHTML = `
+                    <td class="p-3 text-center text-slate-400 font-medium">${idx + 1}</td>
+                    <td class="p-3"><input type="text" value="${sub.name || ''}" placeholder="Tên môn..." onchange="updateField(${idx}, 'name', this.value)" class="w-full bg-slate-50 border rounded px-2 py-1"></td>
+                    <td class="p-3"><input type="number" min="1" value="${sub.credits ?? ''}" onchange="updateField(${idx}, 'credits', this.value)" class="w-full text-center bg-slate-50 border rounded px-2 py-1"></td>
+                    <td class="p-3"><input type="number" min="0" max="10" step="0.1" value="${sub.score ?? ''}" placeholder="0-10" onchange="updateField(${idx}, 'score', this.value)" class="w-full text-center bg-slate-50 border rounded px-2 py-1 font-bold ${converted.letter === 'F' ? 'text-red-600' : ''}"></td>
+                    <td class="p-3 text-center"><span class="font-bold px-2 py-1 rounded text-xs ${converted.letter === 'F' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}">${converted.letter}</span></td>
+                    <td class="p-3 text-center font-bold text-slate-700">${sub.score !== '' && sub.score !== null ? converted.scale4.toFixed(1) : '-'}</td>
+                    <td class="p-3 text-center text-xs">
+                        <label class="mr-2"><input type="checkbox" ${sub.isGDTC ? 'checked' : ''} onchange="updateField(${idx}, 'isGDTC', this.checked)"> GDTC</label>
+                        <label><input type="checkbox" ${sub.isCondition ? 'checked' : ''} onchange="updateField(${idx}, 'isCondition', this.checked)"> ĐK</label>
+                    </td>
+                    <td class="p-3 text-center"><button onclick="deleteRow(${idx})" class="text-red-500 hover:text-red-700"><i class="fa-regular fa-trash-can"></i></button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+            calculateGPA();
+        }
+
+        function calculateGPA() {
+            let tcTichLuy = 0, totalHK10 = 0, totalHK4 = 0, totalHKCredits = 0, totalTL10 = 0, totalTL4 = 0, totalTLCredits = 0;
+
+            subjects.forEach(sub => {
+                const credits = parseFloat(sub.credits) || 0;
+                const score10 = sub.score !== '' && sub.score !== null ? parseFloat(sub.score) : null;
+                if (credits <= 0 || score10 === null || isNaN(score10)) return;
+                const converted = convertScore(score10);
+
+                // Tính ĐTBCHK (Trừ môn GDTC)
+                if (!sub.isGDTC) {
+                    totalHKCredits += credits;
+                    totalHK10 += score10 * credits;
+                    totalHK4 += converted.scale4 * credits;
+                }
+
+                // Tính ĐTBCTL (Trừ F, GDTC, Môn Điều kiện)
+                if (!sub.isGDTC && !sub.isCondition && converted.passed) {
+                    tcTichLuy += credits;
+                    totalTLCredits += credits;
+                    totalTL10 += score10 * credits;
+                    totalTL4 += converted.scale4 * credits;
+                }
+            });
+
+            const hkGpa10 = totalHKCredits > 0 ? (totalHK10 / totalHKCredits) : 0;
+            const hkGpa4 = totalHKCredits > 0 ? (totalHK4 / totalHKCredits) : 0;
+            const tlGpa10 = totalTLCredits > 0 ? (totalTL10 / totalTLCredits) : 0;
+            const tlGpa4 = totalTLCredits > 0 ? (totalTL4 / totalTLCredits) : 0;
+
+            document.getElementById('stat-tc-tl').innerText = tcTichLuy;
+            document.getElementById('stat-gpa-hk4').innerText = hkGpa4.toFixed(2);
+            document.getElementById('stat-gpa-hk10').innerText = `(10: ${hkGpa10.toFixed(2)})`;
+            document.getElementById('stat-gpa-tl4').innerText = tlGpa4.toFixed(2);
+            document.getElementById('stat-gpa-tl10').innerText = `(10: ${tlGpa10.toFixed(2)})`;
+
+            let rank = 'Chưa xếp loại';
+            if (totalTLCredits > 0) {
+                if (tlGpa4 >= 3.6) rank = 'Xuất sắc';
+                else if (tlGpa4 >= 3.2) rank = 'Giỏi';
+                else if (tlGpa4 >= 2.5) rank = 'Khá';
+                else if (tlGpa4 >= 2.0) rank = 'Trung bình';
+                else if (tlGpa4 >= 1.0) rank = 'Yếu';
+                else rank = 'Kém';
+            }
+            document.getElementById('stat-rank').innerText = rank;
+        }
+
+        function loadSampleData() {
+            subjects = [
+                { id: 1, name: 'Triết học Mác - Lênin', credits: 3, score: 8.2, isGDTC: false, isCondition: false },
+                { id: 2, name: 'Lập trình căn bản', credits: 4, score: 9.1, isGDTC: false, isCondition: false },
+                { id: 3, name: 'Toán cao cấp A1', credits: 3, score: 3.5, isGDTC: false, isCondition: false }, // F
+                { id: 4, name: 'Giáo dục thể chất 1', credits: 1, score: 8.5, isGDTC: true, isCondition: false }, // GDTC
+                { id: 5, name: 'Giáo dục quốc phòng', credits: 3, score: 7.8, isGDTC: false, isCondition: true } // ĐK
+            ];
+            renderTable(); saveState();
+        }
+
+        function toggleRuleModal() { document.getElementById('rule-modal').classList.toggle('hidden'); }
+    </script>
+</body>
+</html>
