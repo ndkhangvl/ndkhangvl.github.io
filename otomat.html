@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luyện Vẽ DFA & NFA - Trải Nghiệm Nối Dây Trực Quan</title>
+    <!-- Thêm thư viện Tailwind CSS qua CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Thư viện Vis Network -->
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    
+    <script>
+        // Bỏ qua cảnh báo vô hại của ResizeObserver (Fix lỗi console đỏ)
+        window.addEventListener('error', function(e) {
+            if (e.message === 'ResizeObserver loop limit exceeded' || 
+                e.message === 'ResizeObserver loop completed with undelivered notifications.') {
+                e.stopImmediatePropagation();
+            }
+        });
+    </script>
+
+    <style>
+        /* Chỉ giữ lại một vài CSS đặc thù cho vis-network và custom scrollbar */
+        * { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .vis-network:focus { outline: none; }
+        textarea { font-family: monospace; }
+        
+        /* Màu cho result box */
+        .pass { background-color: #d4edda; color: #155724; border-color: #c3e6cb; }
+        .fail { background-color: #f8d7da; color: #721c24; border-color: #f5c6cb; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 p-4 md:p-6">
+
+<div class="max-w-[1350px] mx-auto flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+    <h1 class="text-2xl md:text-3xl font-bold text-slate-900 text-center md:text-left">Luyện Vẽ Otomat (Nối Mũi Tên Động)</h1>
+    <button class="bg-amber-500 hover:bg-amber-600 text-white px-5 py-2 rounded-full font-bold text-sm transition shadow-sm w-full md:w-auto" onclick="openHelpModal()">
+        ❓ Hướng dẫn
+    </button>
+</div>
+
+<div class="max-w-[1350px] mx-auto grid grid-cols-1 lg:grid-cols-[400px_1fr] xl:grid-cols-[440px_1fr] gap-6">
+    <!-- Cột trái: Cấu hình dữ liệu -->
+    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+        <h2 class="text-lg font-semibold text-slate-700 border-b-2 border-slate-100 pb-2 mb-4">1. Đề Bài & Test Cases</h2>
+        
+        <div class="mb-4">
+            <label class="block text-sm font-bold text-slate-600 mb-1">Mô tả Đề bài:</label>
+            <input type="text" id="probDesc" value="Vẽ NFA nhận các chuỗi kết thúc bằng '01'" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+
+        <label class="block text-sm font-bold text-slate-600 mb-2">Bộ Test Cases:</label>
+        <div id="testCasesContainer" class="flex flex-col gap-2 mb-3"></div>
+        <button class="bg-slate-700 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm transition mb-6 w-full sm:w-auto shadow-sm" onclick="addTestCaseRow('', 'true')">
+            + Thêm Test Case
+        </button>
+
+        <h2 class="text-lg font-semibold text-slate-700 border-b-2 border-slate-100 pb-2 mb-4">2. Bảng Dữ Liệu (Đồng bộ)</h2>
+        
+        <div class="mb-4">
+            <label class="block text-sm font-bold text-slate-600 mb-1">Loại Otomat:</label>
+            <select id="automatonType" onchange="redrawFromInput()" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                <option value="NFA">NFA (Cho phép ε, nhiều nhánh)</option>
+                <option value="DFA">DFA (Chính xác 1 bước/1 ký tự)</option>
+            </select>
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-sm font-bold text-slate-600 mb-1">Các Trạng thái:</label>
+            <input type="text" id="states" value="q0, q1, q2" onchange="redrawFromInput()" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-4 mb-4">
+            <div class="flex-1">
+                <label class="block text-sm font-bold text-slate-600 mb-1">Bắt đầu (Start):</label>
+                <input type="text" id="startState" value="q0" onchange="redrawFromInput()" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+            <div class="flex-1">
+                <label class="block text-sm font-bold text-slate-600 mb-1">Kết thúc (Accept):</label>
+                <input type="text" id="acceptStates" value="q2" onchange="redrawFromInput()" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-sm font-bold text-slate-600 mb-1">Bảng Chuyển Trạng Thái:</label>
+            <textarea id="transitions" onchange="redrawFromInput()" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm h-[100px] focus:ring-2 focus:ring-blue-500 focus:outline-none resize-y">q0, 0, q0&#10;q0, 1, q0&#10;q0, 0, q1&#10;q1, 1, q2</textarea>
+        </div>
+
+        <button class="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-lg font-bold text-base transition shadow-sm" onclick="gradeUserAutomaton()">CHẤM ĐIỂM BÀI VẼ</button>
+        <div id="resultBox" class="mt-4 p-4 border rounded-lg text-sm leading-relaxed hidden"></div>
+    </div>
+
+    <!-- Cột phải: Vùng vẽ sơ đồ -->
+    <div class="bg-white p-4 md:p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col">
+        <h2 class="text-lg font-semibold text-slate-700 border-b-2 border-slate-100 pb-2 mb-3">Vùng Vẽ Sơ Đồ (Double Click tạo Node)</h2>
+        
+        <!-- Thanh công cụ tương tác -->
+        <div class="flex flex-col sm:flex-row gap-2 mb-4 bg-slate-50 p-3 rounded-lg items-start sm:items-center border border-slate-100 flex-wrap">
+            <span class="text-sm text-slate-600 font-medium sm:mr-auto">
+                <span class="hidden md:inline">⚡ Kéo = <b>Di chuyển</b> | Shift + Kéo = <b>Nối dây</b></span>
+                <span class="md:hidden">⚡ Chọn chế độ bên dưới để thao tác</span>
+            </span>
+            
+            <!-- Nút bật/tắt chế độ cho Mobile -->
+            <button id="toggleModeBtn" class="bg-indigo-100 border border-indigo-300 text-indigo-700 hover:bg-indigo-200 px-4 py-1.5 rounded-lg text-sm font-bold transition w-full sm:w-auto shadow-sm" onclick="toggleDrawMode()">
+                🤚 Chế độ: Di chuyển
+            </button>
+
+            <button class="bg-white border border-red-300 text-red-600 hover:bg-red-50 px-4 py-1.5 rounded-lg text-sm font-bold transition w-full sm:w-auto shadow-sm" onclick="clearAll()">Xóa Hết</button>
+        </div>
+
+        <!-- Bỏ flex-1 như đã fix lỗi ResizeObserver -->
+        <div id="network" class="w-full h-[400px] md:h-[560px] border border-slate-200 rounded-lg bg-[#fafafa]"></div>
+    </div>
+</div>
+
+<!-- MODAL CHỈNH SỬA TRẠNG THÁI (NODE) -->
+<div class="fixed inset-0 bg-black/50 z-[3000] p-4 flex justify-center items-center" id="nodeModal" style="display: none;">
+    <div class="bg-white w-full max-w-[450px] rounded-xl p-6 relative shadow-2xl">
+        <span class="absolute top-3 right-4 text-2xl font-bold text-slate-400 hover:text-slate-600 cursor-pointer" onclick="closeModal('nodeModal')">&times;</span>
+        <h3 class="text-lg font-bold text-slate-800 mb-4">Chỉnh Sửa Trạng Thái</h3>
+        
+        <div class="mb-4">
+            <label class="block text-sm font-bold text-slate-600 mb-1">Tên trạng thái:</label>
+            <input type="text" id="modalNodeName" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+
+        <div class="mb-3">
+            <label class="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">
+                <input type="checkbox" id="modalIsStart" class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"> Đặt làm Trạng Thái Bắt Đầu (Start)
+            </label>
+        </div>
+
+        <div class="mb-6">
+            <label class="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">
+                <input type="checkbox" id="modalIsAccept" class="w-4 h-4 text-red-600 rounded border-gray-300 focus:ring-red-500"> Đặt làm Trạng Thái Kết Thúc (Accept)
+            </label>
+        </div>
+
+        <div class="flex flex-col sm:flex-row justify-end gap-3">
+            <button class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-bold transition sm:mr-auto" onclick="deleteCurrentNode()">Xóa Nút Này</button>
+            <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-bold transition" onclick="saveNodeModal()">Lưu Thay Đổi</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CHỈNH SỬA ĐƯỜNG NỐI (EDGE) -->
+<div class="fixed inset-0 bg-black/50 z-[3000] p-4 flex justify-center items-center" id="edgeModal" style="display: none;">
+    <div class="bg-white w-full max-w-[450px] rounded-xl p-6 relative shadow-2xl">
+        <span class="absolute top-3 right-4 text-2xl font-bold text-slate-400 hover:text-slate-600 cursor-pointer" onclick="closeModal('edgeModal')">&times;</span>
+        <h3 class="text-lg font-bold text-slate-800 mb-4" id="edgeModalTitle">Sửa Đường Nối</h3>
+        
+        <div class="mb-6">
+            <label class="block text-sm font-bold text-slate-600 mb-1">Ký tự chuyển (phân cách bằng dấu phẩy):</label>
+            <input type="text" id="modalEdgeSymbol" placeholder="Ví dụ: 0, 1 hoặc eps" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none mb-3">
+            
+            <div class="flex flex-wrap items-center gap-2 text-sm">
+                <span class="text-slate-500 font-medium mr-1">Gõ nhanh:</span>
+                <button class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1 rounded-md font-bold transition" onclick="appendSymbol('eps')">&epsilon; (eps)</button>
+                <button class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1 rounded-md font-bold transition" onclick="appendSymbol('0')">0</button>
+                <button class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1 rounded-md font-bold transition" onclick="appendSymbol('1')">1</button>
+            </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row justify-end gap-3">
+            <button class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-bold transition sm:mr-auto" id="btnDeleteEdge" onclick="deleteCurrentEdge()">Xóa Đường Nối</button>
+            <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-bold transition" onclick="saveEdgeModal()">Xác Nhận</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL HƯỚNG DẪN -->
+<div class="fixed inset-0 bg-black/50 z-[3000] p-4 flex justify-center items-center modal-overlay" id="helpModal" style="display: none;" onclick="closeModalOnOverlay(event)">
+    <div class="bg-white w-full max-w-[500px] rounded-xl p-6 relative shadow-2xl">
+        <span class="absolute top-3 right-4 text-2xl font-bold text-slate-400 hover:text-slate-600 cursor-pointer" onclick="closeModal('helpModal')">&times;</span>
+        <h2 class="text-xl font-bold text-slate-800 border-b-2 border-blue-400 pb-2 mb-4">📖 Hướng Dẫn Vẽ Siêu Tốc</h2>
+        <ul class="list-disc pl-5 space-y-3 text-slate-700 text-sm md:text-base leading-relaxed">
+            <li><b>Tạo nút mới:</b> Double Click vào vị trí trống bất kỳ trên khung vẽ.</li>
+            <li><b>Di chuyển nút:</b> Nhấn giữ và kéo nút tới vị trí mong muốn (Mặc định).</li>
+            <li><b>Nối mũi tên (Máy tính):</b> Giữ phím <b>Shift</b> + Nhấn giữ từ nút nguồn kéo sang nút đích.</li>
+            <li><b>Nối mũi tên (Điện thoại):</b> Nhấn vào nút <b>"Chế độ: Di chuyển/Vẽ"</b> ở thanh công cụ phía trên để đổi sang chế độ nối dây, sau đó chạm kéo bình thường.</li>
+            <li><b>Đổi ký tự chuyển:</b> Nhấp 1 lần vào đường nối để sửa ký tự (mặc định là 0).</li>
+            <li><b>Đổi Start/Accept/Tên nút:</b> Nhấp 1 lần vào nút tương ứng.</li>
+        </ul>
+        <button class="mt-6 w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg font-bold transition" onclick="closeModal('helpModal')">Đã Hiểu!</button>
+    </div>
+</div>
+
+<script>
+    let network = null;
+    let nodesDataSet = new vis.DataSet();
+    let edgesDataSet = new vis.DataSet();
+
+    // Biến trạng thái chế độ Mobile
+    let isDrawMode = false;
+
+    // Biến quản lý trạng thái kéo nối dây động
+    let isDraggingConnection = false;
+    let dragSourceNode = null;
+    const TEMP_NODE_ID = '__temp_target_node__';
+    const TEMP_EDGE_ID = '__temp_drawing_edge__';
+
+    let activeNodeId = null;
+    let activeEdgeId = null;
+
+    // --- TOGGLE DRAW MODE (CHO MOBILE) ---
+    function toggleDrawMode() {
+        isDrawMode = !isDrawMode;
+        const btn = document.getElementById('toggleModeBtn');
+        if (isDrawMode) {
+            btn.innerHTML = '✏️ Chế độ: Nối dây';
+            btn.className = 'bg-emerald-100 border border-emerald-400 text-emerald-800 hover:bg-emerald-200 px-4 py-1.5 rounded-lg text-sm font-bold transition w-full sm:w-auto shadow-sm';
+        } else {
+            btn.innerHTML = '🤚 Chế độ: Di chuyển';
+            btn.className = 'bg-indigo-100 border border-indigo-300 text-indigo-700 hover:bg-indigo-200 px-4 py-1.5 rounded-lg text-sm font-bold transition w-full sm:w-auto shadow-sm';
+        }
+    }
+
+    // --- MODAL UTILS ---
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    function openHelpModal() { openModal('helpModal'); }
+    function closeModalOnOverlay(e) { if (e.target.classList.contains('modal-overlay') || e.target.id === 'helpModal') e.target.style.display = 'none'; }
+
+    function appendSymbol(sym) {
+        const input = document.getElementById('modalEdgeSymbol');
+        if (input.value.trim() === '') input.value = sym;
+        else input.value += ', ' + sym;
+    }
+
+    // --- TEST CASES ---
+    const defaultTestCases = [
+        { str: "01", expected: "true" },
+        { str: "1001", expected: "true" },
+        { str: "10", expected: "false" },
+        { str: "", expected: "false" }
+    ];
+
+    function initDefaultTestCases() {
+        const container = document.getElementById('testCasesContainer');
+        container.innerHTML = '';
+        defaultTestCases.forEach(tc => addTestCaseRow(tc.str, tc.expected));
+    }
+
+    function addTestCaseRow(strVal = '', expectedVal = 'true') {
+        const container = document.getElementById('testCasesContainer');
+        const row = document.createElement('div');
+        row.className = 'test-case-row flex flex-col sm:flex-row gap-2 items-center w-full';
+        
+        row.innerHTML = `
+            <input type="text" class="tc-input flex-2 w-full sm:w-1/2 p-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" value="${strVal}" placeholder="Chuỗi test">
+            <select class="tc-expected flex-1 w-full sm:w-1/3 p-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                <option value="true" ${expectedVal === 'true' ? 'selected' : ''}>ACCEPT</option>
+                <option value="false" ${expectedVal === 'false' ? 'selected' : ''}>REJECT</option>
+            </select>
+            <button class="btn-del bg-red-100 hover:bg-red-200 text-red-600 p-2.5 rounded-lg font-bold transition w-full sm:w-auto" onclick="this.parentElement.remove()" title="Xóa">✕</button>
+        `;
+        container.appendChild(row);
+    }
+
+    function formatSymbolDisplay(symbolStr) {
+        if (!symbolStr) return 'ε';
+        const parts = symbolStr.split(',').map(s => s.trim());
+        const formatted = parts.map(s => {
+            const lower = s.toLowerCase();
+            return (lower === 'eps' || lower === 'epsilon' || lower === 'e' || lower === 'ε' || lower === '') ? 'ε' : s;
+        });
+        return formatted.join(', ');
+    }
+
+    function isEpsilon(symbol) {
+        const s = symbol.toLowerCase().trim();
+        return s === 'eps' || s === 'epsilon' || s === 'e' || s === 'ε' || s === '';
+    }
+
+    function generateNextNodeName() {
+        const existingIds = nodesDataSet.getIds();
+        let index = 0;
+        while (existingIds.includes("q" + index)) {
+            index++;
+        }
+        return "q" + index;
+    }
+
+    // --- KHỞI TẠO TƯƠNG TÁC VẼ MŨI TÊN ĐỘNG TẠI KHUNG ---
+    function initNetwork() {
+        const container = document.getElementById('network');
+        const data = { nodes: nodesDataSet, edges: edgesDataSet };
+        const options = {
+            physics: { enabled: false }, // Tắt physics để vị trí nút ổn định khi kéo
+            interaction: { hover: true, dragNodes: true }
+        };
+
+        network = new vis.Network(container, data, options);
+
+        // 1. DOUBLE CLICK VÙNG TRỐNG -> TẠO NÚT MỚI
+        network.on("doubleClick", function(params) {
+            if (params.nodes.length === 0 && params.edges.length === 0) {
+                const newName = generateNextNodeName();
+                nodesDataSet.add({
+                    id: newName,
+                    label: newName,
+                    shape: 'circle',
+                    borderWidth: 1.5,
+                    color: { background: '#ffffff', border: '#2c3e50' },
+                    font: { size: 16, bold: true },
+                    x: params.pointer.canvas.x,
+                    y: params.pointer.canvas.y
+                });
+                syncGraphToInputs();
+            }
+        });
+
+        // 2. KHỞI TẠO KÉO: KIỂM TRA XEM LÀ DI CHUYỂN HAY NỐI DÂY
+        network.on("dragStart", function(params) {
+            if (params.nodes.length > 0) {
+                const nodeId = params.nodes[0];
+                if (nodeId === TEMP_NODE_ID) return;
+
+                // Điều kiện nối dây: Giữ phím Shift (Máy tính) HOẶC bật chế độ Vẽ (Điện thoại)
+                const isShiftPressed = params.event.srcEvent.shiftKey;
+
+                if (isShiftPressed || isDrawMode) {
+                    dragSourceNode = nodeId;
+                    isDraggingConnection = true;
+
+                    // Khóa tạm không cho di chuyển nút gốc trong lúc nối dây
+                    nodesDataSet.update({ id: dragSourceNode, fixed: true });
+
+                    // Tạo 1 nút ẩn theo vết chuột và 1 cạnh tạm thời
+                    const canvasPos = params.pointer.canvas;
+                    nodesDataSet.add({
+                        id: TEMP_NODE_ID,
+                        x: canvasPos.x,
+                        y: canvasPos.y,
+                        size: 1,
+                        shape: 'dot',
+                        color: { background: 'transparent', border: 'transparent' }
+                    });
+
+                    edgesDataSet.add({
+                        id: TEMP_EDGE_ID,
+                        from: dragSourceNode,
+                        to: TEMP_NODE_ID,
+                        arrows: 'to',
+                        color: { color: '#3b82f6' }, // Tailwind blue-500
+                        dashes: true
+                    });
+                }
+            }
+        });
+
+        // 3. DI CHUYỂN CHUỘT: NẾU ĐANG NỐI DÂY THÌ CẬP NHẬT MŨI TÊN TẠM
+        network.on("dragging", function(params) {
+            if (isDraggingConnection) {
+                const canvasPos = params.pointer.canvas;
+                nodesDataSet.update({
+                    id: TEMP_NODE_ID,
+                    x: canvasPos.x,
+                    y: canvasPos.y
+                });
+            }
+        });
+
+        // 4. THẢ CHUỘT: TỰ ĐỘNG NỐI HOẶC KẾT THÚC DI CHUYỂN
+        network.on("dragEnd", function(params) {
+            if (isDraggingConnection) {
+                // Dọn dẹp cạnh và nút tạm
+                edgesDataSet.remove(TEMP_EDGE_ID);
+                nodesDataSet.remove(TEMP_NODE_ID);
+
+                // Mở lại khả năng di chuyển nút gốc
+                if (dragSourceNode) {
+                    nodesDataSet.update({ id: dragSourceNode, fixed: false });
+                }
+
+                // Tìm nút đích dưới con trỏ chuột khi thả
+                const targetNode = network.getNodeAt(params.pointer.DOM);
+
+                if (dragSourceNode && targetNode && targetNode !== TEMP_NODE_ID) {
+                    addNewEdgeDirectly(dragSourceNode, targetNode);
+                }
+
+                isDraggingConnection = false;
+                dragSourceNode = null;
+            }
+        });
+
+        // 5. CLICK ĐỂ CHỈNH SỬA
+        network.on("click", function(params) {
+            if (!isDraggingConnection) {
+                if (params.nodes.length > 0 && params.nodes[0] !== TEMP_NODE_ID) {
+                    openNodeModal(params.nodes[0]);
+                } else if (params.edges.length > 0 && params.edges[0] !== TEMP_EDGE_ID) {
+                    openEdgeModal(params.edges[0]);
+                }
+            }
+        });
+    }
+
+    // --- TỰ ĐỘNG THÊM / CẬP NHẬT ĐƯỜNG NỐI KHÔNG BẬT MODAL ---
+    function addNewEdgeDirectly(fromNode, toNode) {
+        const existingEdges = edgesDataSet.get({
+            filter: function (item) {
+                return item.from === fromNode && item.to === toNode;
+            }
+        });
+
+        if (existingEdges.length > 0) {
+            const edge = existingEdges[0];
+            let currentSymbols = edge.label.split(',').map(s => s.trim());
+            if (!currentSymbols.includes('0')) {
+                currentSymbols.push('0');
+                edge.label = currentSymbols.join(', ');
+                edgesDataSet.update(edge);
+            }
+        } else {
+            edgesDataSet.add({
+                from: fromNode,
+                to: toNode,
+                label: '0',
+                arrows: 'to',
+                font: { align: 'top', size: 14 },
+                smooth: (fromNode === toNode) 
+                    ? { type: 'continuous' } 
+                    : { type: 'curvedCW', roundness: 0.25 }
+            });
+        }
+        syncGraphToInputs();
+    }
+
+    function clearAll() {
+        if (confirm("Bạn có chắc muốn xóa hết toàn bộ sơ đồ?")) {
+            nodesDataSet.clear();
+            edgesDataSet.clear();
+            syncGraphToInputs();
+        }
+    }
+
+    // --- MODAL CHỈNH SỬA TRẠNG THÁI ---
+    function openNodeModal(nodeId) {
+        activeNodeId = nodeId;
+        const node = nodesDataSet.get(nodeId);
+        const startState = document.getElementById('startState').value.trim();
+        const acceptStates = document.getElementById('acceptStates').value.split(',').map(s=>s.trim());
+
+        document.getElementById('modalNodeName').value = node.label;
+        document.getElementById('modalIsStart').checked = (nodeId === startState);
+        document.getElementById('modalIsAccept').checked = acceptStates.includes(nodeId);
+
+        openModal('nodeModal');
+    }
+
+    function saveNodeModal() {
+        if (!activeNodeId) return;
+        const newName = document.getElementById('modalNodeName').value.trim();
+        if (!newName) return;
+
+        const isStart = document.getElementById('modalIsStart').checked;
+        const isAccept = document.getElementById('modalIsAccept').checked;
+
+        if (isStart) {
+            document.getElementById('startState').value = newName;
+        } else if (document.getElementById('startState').value.trim() === activeNodeId) {
+            document.getElementById('startState').value = "";
+        }
+
+        let acceptList = document.getElementById('acceptStates').value.split(',').map(s=>s.trim()).filter(s=>s && s !== activeNodeId);
+        if (isAccept) acceptList.push(newName);
+        document.getElementById('acceptStates').value = acceptList.join(', ');
+
+        if (newName !== activeNodeId) {
+            const oldNode = nodesDataSet.get(activeNodeId);
+            nodesDataSet.remove(activeNodeId);
+            oldNode.id = newName;
+            oldNode.label = newName;
+            nodesDataSet.add(oldNode);
+
+            const edges = edgesDataSet.get();
+            edges.forEach(e => {
+                if (e.from === activeNodeId) e.from = newName;
+                if (e.to === activeNodeId) e.to = newName;
+                edgesDataSet.update(e);
+            });
+        }
+
+        closeModal('nodeModal');
+        syncGraphToInputs();
+    }
+
+    function deleteCurrentNode() {
+        if (activeNodeId && confirm(`Xóa trạng thái "${activeNodeId}" và các đường nối liên quan?`)) {
+            nodesDataSet.remove(activeNodeId);
+            closeModal('nodeModal');
+            syncGraphToInputs();
+        }
+    }
+
+    // --- MODAL SỬA ĐƯỜNG NỐI ---
+    function openEdgeModal(edgeId) {
+        activeEdgeId = edgeId;
+        const edge = edgesDataSet.get(edgeId);
+        document.getElementById('edgeModalTitle').innerText = `Sửa Đường Nối (${edge.from} ➔ ${edge.to})`;
+        document.getElementById('modalEdgeSymbol').value = edge.label === 'ε' ? 'eps' : edge.label;
+        openModal('edgeModal');
+    }
+
+    function saveEdgeModal() {
+        if (activeEdgeId) {
+            const rawSym = document.getElementById('modalEdgeSymbol').value;
+            const formattedSym = formatSymbolDisplay(rawSym);
+            const edge = edgesDataSet.get(activeEdgeId);
+            edge.label = formattedSym;
+            edgesDataSet.update(edge);
+        }
+        closeModal('edgeModal');
+        syncGraphToInputs();
+    }
+
+    function deleteCurrentEdge() {
+        if (activeEdgeId) {
+            edgesDataSet.remove(activeEdgeId);
+            closeModal('edgeModal');
+            syncGraphToInputs();
+        }
+    }
+
+    // --- ĐỒNG BỘ DỮ LIỆU BẢNG & ĐỒ THỊ ---
+    function syncGraphToInputs() {
+        const allNodes = nodesDataSet.getIds().filter(id => id !== TEMP_NODE_ID);
+        document.getElementById('states').value = allNodes.join(', ');
+
+        const allEdges = edgesDataSet.get().filter(e => e.id !== TEMP_EDGE_ID);
+        let transText = [];
+        allEdges.forEach(e => {
+            const symbols = e.label.split(',').map(s => s.trim());
+            symbols.forEach(sym => {
+                const s = isEpsilon(sym) ? 'eps' : sym;
+                transText.push(`${e.from}, ${s}, ${e.to}`);
+            });
+        });
+        document.getElementById('transitions').value = transText.join('\n');
+
+        updateNodeStyles();
+    }
+
+    function redrawFromInput() {
+        const states = document.getElementById('states').value.split(',').map(s => s.trim()).filter(s => s);
+        const startState = document.getElementById('startState').value.trim();
+        const acceptStates = document.getElementById('acceptStates').value.split(',').map(s => s.trim());
+        const transitionsText = document.getElementById('transitions').value.trim().split('\n');
+
+        nodesDataSet.clear();
+        edgesDataSet.clear();
+
+        states.forEach(state => {
+            const isStart = state === startState;
+            const isAccept = acceptStates.includes(state);
+            nodesDataSet.add({
+                id: state,
+                label: state,
+                shape: 'circle',
+                color: {
+                    background: isStart ? '#e8f8f5' : '#ffffff',
+                    border: isAccept ? '#ef4444' : '#334155'
+                },
+                borderWidth: isAccept ? 3.5 : 1.5,
+                font: { size: 16, bold: true }
+            });
+        });
+
+        const edgeMap = {};
+        transitionsText.forEach(line => {
+            const parts = line.split(',').map(p => p.trim());
+            if (parts.length === 3) {
+                const [from, symbol, to] = parts;
+                if (states.includes(from) && states.includes(to)) {
+                    const key = `${from}->${to}`;
+                    if (!edgeMap[key]) edgeMap[key] = [];
+                    const symDisp = isEpsilon(symbol) ? 'ε' : symbol;
+                    if (!edgeMap[key].includes(symDisp)) edgeMap[key].push(symDisp);
+                }
+            }
+        });
+
+        Object.keys(edgeMap).forEach((key, idx) => {
+            const [from, to] = key.split('->');
+            edgesDataSet.add({
+                id: 'e_' + idx,
+                from: from,
+                to: to,
+                label: edgeMap[key].join(', '),
+                arrows: 'to',
+                font: { align: 'top', size: 14 },
+                smooth: from === to ? { type: 'continuous' } : { type: 'curvedCW', roundness: 0.25 }
+            });
+        });
+    }
+
+    function updateNodeStyles() {
+        const startState = document.getElementById('startState').value.trim();
+        const acceptStates = document.getElementById('acceptStates').value.split(',').map(s => s.trim());
+
+        nodesDataSet.forEach(node => {
+            if (node.id === TEMP_NODE_ID) return;
+            const isStart = node.id === startState;
+            const isAccept = acceptStates.includes(node.id);
+            nodesDataSet.update({
+                id: node.id,
+                color: {
+                    background: isStart ? '#e8f8f5' : '#ffffff',
+                    border: isAccept ? '#ef4444' : '#334155'
+                },
+                borderWidth: isAccept ? 3.5 : 1.5
+            });
+        });
+    }
+
+    // --- MÔ PHỎNG & CHẤM ĐIỂM ---
+    function getEpsilonClosure(states, transitionTable) {
+        let stack = [...states];
+        let closure = new Set(states);
+        while (stack.length > 0) {
+            let state = stack.pop();
+            if (transitionTable[state] && transitionTable[state]['ε']) {
+                transitionTable[state]['ε'].forEach(nextState => {
+                    if (!closure.has(nextState)) {
+                        closure.add(nextState);
+                        stack.push(nextState);
+                    }
+                });
+            }
+        }
+        return closure;
+    }
+
+    function runUserAutomaton(inputStr, startState, acceptStates, transitionTable, type) {
+        if (type === 'DFA') {
+            let currentState = startState;
+            for (let char of inputStr) {
+                if (transitionTable[currentState] && transitionTable[currentState][char] && transitionTable[currentState][char].length > 0) {
+                    currentState = transitionTable[currentState][char][0];
+                } else {
+                    return false;
+                }
+            }
+            return acceptStates.includes(currentState);
+        } else {
+            let currentStates = getEpsilonClosure([startState], transitionTable);
+            for (let char of inputStr) {
+                let nextStates = new Set();
+                currentStates.forEach(state => {
+                    if (transitionTable[state] && transitionTable[state][char]) {
+                        transitionTable[state][char].forEach(ns => nextStates.add(ns));
+                    }
+                });
+                currentStates = getEpsilonClosure(Array.from(nextStates), transitionTable);
+            }
+            return Array.from(currentStates).some(st => acceptStates.includes(st));
+        }
+    }
+
+    function gradeUserAutomaton() {
+        syncGraphToInputs();
+
+        const startState = document.getElementById('startState').value.trim();
+        const acceptStates = document.getElementById('acceptStates').value.split(',').map(s => s.trim());
+        const transitionsText = document.getElementById('transitions').value.trim().split('\n');
+        const automatonType = document.getElementById('automatonType').value;
+
+        const transitionTable = {};
+        transitionsText.forEach(line => {
+            const parts = line.split(',').map(p => p.trim());
+            if (parts.length === 3) {
+                let [from, symbol, to] = parts;
+                if (isEpsilon(symbol)) symbol = 'ε';
+
+                if (!transitionTable[from]) transitionTable[from] = {};
+                if (!transitionTable[from][symbol]) transitionTable[from][symbol] = [];
+                transitionTable[from][symbol].push(to);
+            }
+        });
+
+        const rows = document.querySelectorAll('.test-case-row');
+        const customTestCases = [];
+        rows.forEach(row => {
+            const inputStr = row.querySelector('.tc-input').value.trim();
+            const expectedBool = row.querySelector('.tc-expected').value === 'true';
+            customTestCases.push({ str: inputStr, expected: expectedBool });
+        });
+
+        if (customTestCases.length === 0) {
+            alert("Vui lòng thêm ít nhất 1 Test Case!");
+            return;
+        }
+
+        let passedCount = 0;
+        let failLog = "";
+
+        customTestCases.forEach(tc => {
+            const userResult = runUserAutomaton(tc.str, startState, acceptStates, transitionTable, automatonType);
+            const isCorrect = userResult === tc.expected;
+
+            if (isCorrect) {
+                passedCount++;
+            } else {
+                const strDisplay = tc.str === "" ? "(chuỗi rỗng)" : `"${tc.str}"`;
+                failLog += `<br>• Sai ở chuỗi <b>${strDisplay}</b>: Đề bài yêu cầu <i>${tc.expected ? 'ACCEPT' : 'REJECT'}</i> nhưng ${automatonType} của bạn lại <i>${userResult ? 'ACCEPT' : 'REJECT'}</i>`;
+            }
+        });
+
+        const resultBox = document.getElementById('resultBox');
+        resultBox.style.display = 'block';
+
+        if (passedCount === customTestCases.length) {
+            resultBox.className = "mt-4 p-4 border rounded-lg text-sm leading-relaxed pass";
+            resultBox.innerHTML = `<b class="text-base">XUẤT SẮC! BÀI VẼ ${automatonType} ĐẠT 100%!</b><br>Đã vượt qua tất cả ${passedCount}/${customTestCases.length} bộ test case.`;
+        } else {
+            resultBox.className = "mt-4 p-4 border rounded-lg text-sm leading-relaxed fail";
+            resultBox.innerHTML = `<b class="text-base">BÀI VẼ CHƯA ĐẠT!</b> (${passedCount}/${customTestCases.length} test cases đúng)<div class="mt-2 pt-2 border-t border-red-200/50 text-xs">${failLog}</div>`;
+        }
+    }
+
+    window.onload = function() {
+        initDefaultTestCases();
+        initNetwork();
+        redrawFromInput();
+    };
+</script>
+
+</body>
+</html>
