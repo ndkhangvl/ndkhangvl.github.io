@@ -3,14 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Luyện Vẽ DFA & NFA - Trải Nghiệm Nối Dây Trực Quan</title>
-    <!-- Thêm thư viện Tailwind CSS qua CDN -->
+    <title>Luyện Vẽ DFA & NFA</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Thư viện Vis Network -->
     <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
     
     <script>
-        // Bỏ qua cảnh báo vô hại của ResizeObserver (Fix lỗi console đỏ)
         window.addEventListener('error', function(e) {
             if (e.message === 'ResizeObserver loop limit exceeded' || 
                 e.message === 'ResizeObserver loop completed with undelivered notifications.') {
@@ -20,12 +17,9 @@
     </script>
 
     <style>
-        /* Chỉ giữ lại một vài CSS đặc thù cho vis-network và custom scrollbar */
         * { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .vis-network:focus { outline: none; }
         textarea { font-family: monospace; }
-        
-        /* Màu cho result box */
         .pass { background-color: #d4edda; color: #155724; border-color: #c3e6cb; }
         .fail { background-color: #f8d7da; color: #721c24; border-color: #f5c6cb; }
     </style>
@@ -33,7 +27,7 @@
 <body class="bg-slate-100 text-slate-800 p-4 md:p-6">
 
 <div class="max-w-[1350px] mx-auto flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-    <h1 class="text-2xl md:text-3xl font-bold text-slate-900 text-center md:text-left">Luyện Vẽ Otomat (Nối Mũi Tên Động)</h1>
+    <h1 class="text-2xl md:text-3xl font-bold text-slate-900 text-center md:text-left">Luyện Vẽ Otomat Trực Quan</h1>
     <button class="bg-amber-500 hover:bg-amber-600 text-white px-5 py-2 rounded-full font-bold text-sm transition shadow-sm w-full md:w-auto" onclick="openHelpModal()">
         ❓ Hướng dẫn
     </button>
@@ -94,27 +88,26 @@
     <div class="bg-white p-4 md:p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col">
         <h2 class="text-lg font-semibold text-slate-700 border-b-2 border-slate-100 pb-2 mb-3">Vùng Vẽ Sơ Đồ (Double Click tạo Node)</h2>
         
-        <!-- Thanh công cụ tương tác -->
+        <!-- Thanh công cụ -->
         <div class="flex flex-col sm:flex-row gap-2 mb-4 bg-slate-50 p-3 rounded-lg items-start sm:items-center border border-slate-100 flex-wrap">
             <span class="text-sm text-slate-600 font-medium sm:mr-auto">
-                <span class="hidden md:inline">⚡ Kéo = <b>Di chuyển</b> | Shift + Kéo = <b>Nối dây</b></span>
-                <span class="md:hidden">⚡ Chọn chế độ bên dưới để thao tác</span>
+                <span class="hidden md:inline">⚡ Giữ <b>Shift + Click 2 nút</b> để nối dây | Kéo chuột = <b>Di chuyển</b></span>
+                <span class="md:hidden">⚡ Bật nút bên dưới rồi chạm lần lượt 2 nút để nối</span>
             </span>
             
-            <!-- Nút bật/tắt chế độ cho Mobile -->
-            <button id="toggleModeBtn" class="bg-indigo-100 border border-indigo-300 text-indigo-700 hover:bg-indigo-200 px-4 py-1.5 rounded-lg text-sm font-bold transition w-full sm:w-auto shadow-sm" onclick="toggleDrawMode()">
-                🤚 Chế độ: Di chuyển
+            <button id="toggleModeBtn" class="bg-indigo-100 border border-indigo-300 text-indigo-700 hover:bg-indigo-200 px-4 py-1.5 rounded-lg text-sm font-bold transition w-full sm:w-auto shadow-sm" onclick="toggleConnectMode()">
+                ✏️ Nối Dây (Tắt)
             </button>
 
             <button class="bg-white border border-red-300 text-red-600 hover:bg-red-50 px-4 py-1.5 rounded-lg text-sm font-bold transition w-full sm:w-auto shadow-sm" onclick="clearAll()">Xóa Hết</button>
         </div>
 
-        <!-- Bỏ flex-1 như đã fix lỗi ResizeObserver -->
+        <div id="connectStatusText" class="text-xs text-blue-600 font-bold mb-2 h-4"></div>
         <div id="network" class="w-full h-[400px] md:h-[560px] border border-slate-200 rounded-lg bg-[#fafafa]"></div>
     </div>
 </div>
 
-<!-- MODAL CHỈNH SỬA TRẠNG THÁI (NODE) -->
+<!-- MODAL CHỈNH SỬA TRẠNG THÁI -->
 <div class="fixed inset-0 bg-black/50 z-[3000] p-4 flex justify-center items-center" id="nodeModal" style="display: none;">
     <div class="bg-white w-full max-w-[450px] rounded-xl p-6 relative shadow-2xl">
         <span class="absolute top-3 right-4 text-2xl font-bold text-slate-400 hover:text-slate-600 cursor-pointer" onclick="closeModal('nodeModal')">&times;</span>
@@ -144,7 +137,7 @@
     </div>
 </div>
 
-<!-- MODAL CHỈNH SỬA ĐƯỜNG NỐI (EDGE) -->
+<!-- MODAL CHỈNH SỬA ĐƯỜNG NỐI -->
 <div class="fixed inset-0 bg-black/50 z-[3000] p-4 flex justify-center items-center" id="edgeModal" style="display: none;">
     <div class="bg-white w-full max-w-[450px] rounded-xl p-6 relative shadow-2xl">
         <span class="absolute top-3 right-4 text-2xl font-bold text-slate-400 hover:text-slate-600 cursor-pointer" onclick="closeModal('edgeModal')">&times;</span>
@@ -175,12 +168,12 @@
         <span class="absolute top-3 right-4 text-2xl font-bold text-slate-400 hover:text-slate-600 cursor-pointer" onclick="closeModal('helpModal')">&times;</span>
         <h2 class="text-xl font-bold text-slate-800 border-b-2 border-blue-400 pb-2 mb-4">📖 Hướng Dẫn Vẽ Siêu Tốc</h2>
         <ul class="list-disc pl-5 space-y-3 text-slate-700 text-sm md:text-base leading-relaxed">
-            <li><b>Tạo nút mới:</b> Double Click vào vị trí trống bất kỳ trên khung vẽ.</li>
-            <li><b>Di chuyển nút:</b> Nhấn giữ và kéo nút tới vị trí mong muốn (Mặc định).</li>
-            <li><b>Nối mũi tên (Máy tính):</b> Giữ phím <b>Shift</b> + Nhấn giữ từ nút nguồn kéo sang nút đích.</li>
-            <li><b>Nối mũi tên (Điện thoại):</b> Nhấn vào nút <b>"Chế độ: Di chuyển/Vẽ"</b> ở thanh công cụ phía trên để đổi sang chế độ nối dây, sau đó chạm kéo bình thường.</li>
-            <li><b>Đổi ký tự chuyển:</b> Nhấp 1 lần vào đường nối để sửa ký tự (mặc định là 0).</li>
-            <li><b>Đổi Start/Accept/Tên nút:</b> Nhấp 1 lần vào nút tương ứng.</li>
+            <li><b>Tạo nút mới:</b> Double Click vào khoảng trống bất kỳ trên khung vẽ.</li>
+            <li><b>Di chuyển nút:</b> Nhấp giữ chuột và kéo bình thường.</li>
+            <li><b>Nối mũi tên:</b> Giữ phím <b>Shift</b> và click vào nút bắt đầu, sau đó click vào nút đích (có thể click vào chính nó để tạo khuyên lặp).</li>
+            <li><b>Trên điện thoại:</b> Nhấn nút <b>"✏️ Nối Dây"</b> trên thanh công cụ, rồi chạm lần lượt 2 nút.</li>
+            <li><b>Sửa / Xóa nút:</b> Nhấp 1 lần vào nút để đổi tên, đổi Start/Accept hoặc xóa.</li>
+            <li><b>Sửa đường nối:</b> Nhấp 1 lần vào đường nối để sửa nhãn ký tự.</li>
         </ul>
         <button class="mt-6 w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg font-bold transition" onclick="closeModal('helpModal')">Đã Hiểu!</button>
     </div>
@@ -191,32 +184,62 @@
     let nodesDataSet = new vis.DataSet();
     let edgesDataSet = new vis.DataSet();
 
-    // Biến trạng thái chế độ Mobile
-    let isDrawMode = false;
-
-    // Biến quản lý trạng thái kéo nối dây động
-    let isDraggingConnection = false;
-    let dragSourceNode = null;
-    const TEMP_NODE_ID = '__temp_target_node__';
-    const TEMP_EDGE_ID = '__temp_drawing_edge__';
+    let isConnectMode = false;
+    let isShiftHeld = false;
+    let selectedSourceNode = null;
 
     let activeNodeId = null;
     let activeEdgeId = null;
 
-    // --- TOGGLE DRAW MODE (CHO MOBILE) ---
-    function toggleDrawMode() {
-        isDrawMode = !isDrawMode;
-        const btn = document.getElementById('toggleModeBtn');
-        if (isDrawMode) {
-            btn.innerHTML = '✏️ Chế độ: Nối dây';
-            btn.className = 'bg-emerald-100 border border-emerald-400 text-emerald-800 hover:bg-emerald-200 px-4 py-1.5 rounded-lg text-sm font-bold transition w-full sm:w-auto shadow-sm';
+    window.addEventListener('keydown', (e) => { 
+        if (e.key === 'Shift') {
+            isShiftHeld = true;
+            updateStatusText();
+        }
+    });
+    window.addEventListener('keyup', (e) => { 
+        if (e.key === 'Shift') {
+            isShiftHeld = false;
+            if (!isConnectMode && !selectedSourceNode) updateStatusText();
+        }
+    });
+
+    function updateStatusText() {
+        const status = document.getElementById('connectStatusText');
+        if (selectedSourceNode) {
+            status.innerText = `🔗 Đang chọn [${selectedSourceNode}]. Hãy click vào nút đích...`;
+        } else if (isShiftHeld || isConnectMode) {
+            status.innerText = `✏️ Chế độ nối dây đang kích hoạt. Click nút nguồn để bắt đầu.`;
         } else {
-            btn.innerHTML = '🤚 Chế độ: Di chuyển';
-            btn.className = 'bg-indigo-100 border border-indigo-300 text-indigo-700 hover:bg-indigo-200 px-4 py-1.5 rounded-lg text-sm font-bold transition w-full sm:w-auto shadow-sm';
+            status.innerText = '';
         }
     }
 
-    // --- MODAL UTILS ---
+    function toggleConnectMode() {
+        isConnectMode = !isConnectMode;
+        selectedSourceNode = null;
+        const btn = document.getElementById('toggleModeBtn');
+        if (isConnectMode) {
+            btn.innerHTML = '✏️ Nối Dây (Bật)';
+            btn.className = 'bg-emerald-500 text-white px-4 py-1.5 rounded-lg text-sm font-bold transition w-full sm:w-auto shadow-sm';
+        } else {
+            btn.innerHTML = '✏️ Nối Dây (Tắt)';
+            btn.className = 'bg-indigo-100 border border-indigo-300 text-indigo-700 hover:bg-indigo-200 px-4 py-1.5 rounded-lg text-sm font-bold transition w-full sm:w-auto shadow-sm';
+        }
+        updateNodeSelectionUI();
+        updateStatusText();
+    }
+
+    function updateNodeSelectionUI() {
+        nodesDataSet.forEach(node => {
+            const isSrc = node.id === selectedSourceNode;
+            nodesDataSet.update({
+                id: node.id,
+                shadow: isSrc ? { enabled: true, color: '#3b82f6', size: 15 } : false
+            });
+        });
+    }
+
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
     function openHelpModal() { openModal('helpModal'); }
@@ -228,7 +251,6 @@
         else input.value += ', ' + sym;
     }
 
-    // --- TEST CASES ---
     const defaultTestCases = [
         { str: "01", expected: "true" },
         { str: "1001", expected: "true" },
@@ -246,7 +268,6 @@
         const container = document.getElementById('testCasesContainer');
         const row = document.createElement('div');
         row.className = 'test-case-row flex flex-col sm:flex-row gap-2 items-center w-full';
-        
         row.innerHTML = `
             <input type="text" class="tc-input flex-2 w-full sm:w-1/2 p-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" value="${strVal}" placeholder="Chuỗi test">
             <select class="tc-expected flex-1 w-full sm:w-1/3 p-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
@@ -282,18 +303,20 @@
         return "q" + index;
     }
 
-    // --- KHỞI TẠO TƯƠNG TÁC VẼ MŨI TÊN ĐỘNG TẠI KHUNG ---
     function initNetwork() {
         const container = document.getElementById('network');
         const data = { nodes: nodesDataSet, edges: edgesDataSet };
         const options = {
-            physics: { enabled: false }, // Tắt physics để vị trí nút ổn định khi kéo
-            interaction: { hover: true, dragNodes: true }
+            physics: { enabled: false },
+            interaction: { 
+                hover: true, 
+                dragNodes: true,
+                selectConnectedEdges: false
+            }
         };
 
         network = new vis.Network(container, data, options);
 
-        // 1. DOUBLE CLICK VÙNG TRỐNG -> TẠO NÚT MỚI
         network.on("doubleClick", function(params) {
             if (params.nodes.length === 0 && params.edges.length === 0) {
                 const newName = generateNextNodeName();
@@ -311,94 +334,42 @@
             }
         });
 
-        // 2. KHỞI TẠO KÉO: KIỂM TRA XEM LÀ DI CHUYỂN HAY NỐI DÂY
-        network.on("dragStart", function(params) {
-            if (params.nodes.length > 0) {
-                const nodeId = params.nodes[0];
-                if (nodeId === TEMP_NODE_ID) return;
-
-                // Điều kiện nối dây: Giữ phím Shift (Máy tính) HOẶC bật chế độ Vẽ (Điện thoại)
-                const isShiftPressed = params.event.srcEvent.shiftKey;
-
-                if (isShiftPressed || isDrawMode) {
-                    dragSourceNode = nodeId;
-                    isDraggingConnection = true;
-
-                    // Khóa tạm không cho di chuyển nút gốc trong lúc nối dây
-                    nodesDataSet.update({ id: dragSourceNode, fixed: true });
-
-                    // Tạo 1 nút ẩn theo vết chuột và 1 cạnh tạm thời
-                    const canvasPos = params.pointer.canvas;
-                    nodesDataSet.add({
-                        id: TEMP_NODE_ID,
-                        x: canvasPos.x,
-                        y: canvasPos.y,
-                        size: 1,
-                        shape: 'dot',
-                        color: { background: 'transparent', border: 'transparent' }
-                    });
-
-                    edgesDataSet.add({
-                        id: TEMP_EDGE_ID,
-                        from: dragSourceNode,
-                        to: TEMP_NODE_ID,
-                        arrows: 'to',
-                        color: { color: '#3b82f6' }, // Tailwind blue-500
-                        dashes: true
-                    });
-                }
-            }
-        });
-
-        // 3. DI CHUYỂN CHUỘT: NẾU ĐANG NỐI DÂY THÌ CẬP NHẬT MŨI TÊN TẠM
-        network.on("dragging", function(params) {
-            if (isDraggingConnection) {
-                const canvasPos = params.pointer.canvas;
-                nodesDataSet.update({
-                    id: TEMP_NODE_ID,
-                    x: canvasPos.x,
-                    y: canvasPos.y
-                });
-            }
-        });
-
-        // 4. THẢ CHUỘT: TỰ ĐỘNG NỐI HOẶC KẾT THÚC DI CHUYỂN
-        network.on("dragEnd", function(params) {
-            if (isDraggingConnection) {
-                // Dọn dẹp cạnh và nút tạm
-                edgesDataSet.remove(TEMP_EDGE_ID);
-                nodesDataSet.remove(TEMP_NODE_ID);
-
-                // Mở lại khả năng di chuyển nút gốc
-                if (dragSourceNode) {
-                    nodesDataSet.update({ id: dragSourceNode, fixed: false });
-                }
-
-                // Tìm nút đích dưới con trỏ chuột khi thả
-                const targetNode = network.getNodeAt(params.pointer.DOM);
-
-                if (dragSourceNode && targetNode && targetNode !== TEMP_NODE_ID) {
-                    addNewEdgeDirectly(dragSourceNode, targetNode);
-                }
-
-                isDraggingConnection = false;
-                dragSourceNode = null;
-            }
-        });
-
-        // 5. CLICK ĐỂ CHỈNH SỬA
         network.on("click", function(params) {
-            if (!isDraggingConnection) {
-                if (params.nodes.length > 0 && params.nodes[0] !== TEMP_NODE_ID) {
-                    openNodeModal(params.nodes[0]);
-                } else if (params.edges.length > 0 && params.edges[0] !== TEMP_EDGE_ID) {
-                    openEdgeModal(params.edges[0]);
+            const shiftMode = isShiftHeld || (params.event && params.event.srcEvent && params.event.srcEvent.shiftKey) || isConnectMode;
+
+            if (params.nodes.length > 0) {
+                const clickedNode = params.nodes[0];
+
+                if (shiftMode) {
+                    if (!selectedSourceNode) {
+                        selectedSourceNode = clickedNode;
+                        updateNodeSelectionUI();
+                        updateStatusText();
+                    } else {
+                        addNewEdgeDirectly(selectedSourceNode, clickedNode);
+                        selectedSourceNode = null;
+                        updateNodeSelectionUI();
+                        updateStatusText();
+                    }
+                } else {
+                    selectedSourceNode = null;
+                    updateNodeSelectionUI();
+                    updateStatusText();
+                    openNodeModal(clickedNode);
                 }
+            } else if (params.edges.length > 0) {
+                selectedSourceNode = null;
+                updateNodeSelectionUI();
+                updateStatusText();
+                openEdgeModal(params.edges[0]);
+            } else {
+                selectedSourceNode = null;
+                updateNodeSelectionUI();
+                updateStatusText();
             }
         });
     }
 
-    // --- TỰ ĐỘNG THÊM / CẬP NHẬT ĐƯỜNG NỐI KHÔNG BẬT MODAL ---
     function addNewEdgeDirectly(fromNode, toNode) {
         const existingEdges = edgesDataSet.get({
             filter: function (item) {
@@ -433,11 +404,12 @@
         if (confirm("Bạn có chắc muốn xóa hết toàn bộ sơ đồ?")) {
             nodesDataSet.clear();
             edgesDataSet.clear();
+            selectedSourceNode = null;
+            updateStatusText();
             syncGraphToInputs();
         }
     }
 
-    // --- MODAL CHỈNH SỬA TRẠNG THÁI ---
     function openNodeModal(nodeId) {
         activeNodeId = nodeId;
         const node = nodesDataSet.get(nodeId);
@@ -496,7 +468,6 @@
         }
     }
 
-    // --- MODAL SỬA ĐƯỜNG NỐI ---
     function openEdgeModal(edgeId) {
         activeEdgeId = edgeId;
         const edge = edgesDataSet.get(edgeId);
@@ -525,12 +496,11 @@
         }
     }
 
-    // --- ĐỒNG BỘ DỮ LIỆU BẢNG & ĐỒ THỊ ---
     function syncGraphToInputs() {
-        const allNodes = nodesDataSet.getIds().filter(id => id !== TEMP_NODE_ID);
+        const allNodes = nodesDataSet.getIds();
         document.getElementById('states').value = allNodes.join(', ');
 
-        const allEdges = edgesDataSet.get().filter(e => e.id !== TEMP_EDGE_ID);
+        const allEdges = edgesDataSet.get();
         let transText = [];
         allEdges.forEach(e => {
             const symbols = e.label.split(',').map(s => s.trim());
@@ -553,13 +523,18 @@
         nodesDataSet.clear();
         edgesDataSet.clear();
 
-        states.forEach(state => {
+        const spacing = 160;
+        const startX = -((states.length - 1) * spacing) / 2;
+
+        states.forEach((state, index) => {
             const isStart = state === startState;
             const isAccept = acceptStates.includes(state);
             nodesDataSet.add({
                 id: state,
                 label: state,
                 shape: 'circle',
+                x: startX + index * spacing,
+                y: 0,
                 color: {
                     background: isStart ? '#e8f8f5' : '#ffffff',
                     border: isAccept ? '#ef4444' : '#334155'
@@ -595,6 +570,12 @@
                 smooth: from === to ? { type: 'continuous' } : { type: 'curvedCW', roundness: 0.25 }
             });
         });
+
+        if (network) {
+            setTimeout(() => {
+                network.fit({ animation: { duration: 250 } });
+            }, 50);
+        }
     }
 
     function updateNodeStyles() {
@@ -602,7 +583,6 @@
         const acceptStates = document.getElementById('acceptStates').value.split(',').map(s => s.trim());
 
         nodesDataSet.forEach(node => {
-            if (node.id === TEMP_NODE_ID) return;
             const isStart = node.id === startState;
             const isAccept = acceptStates.includes(node.id);
             nodesDataSet.update({
@@ -616,7 +596,6 @@
         });
     }
 
-    // --- MÔ PHỎNG & CHẤM ĐIỂM ---
     function getEpsilonClosure(states, transitionTable) {
         let stack = [...states];
         let closure = new Set(states);
