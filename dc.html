@@ -1,0 +1,2264 @@
+<!DOCTYPE html>
+<html lang="vi" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Đã Bao Nhiêu Ngày Đến Hôm Nay? - Ocean Day Counter</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Phosphor Icons CDN -->
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <!-- html2canvas for Exporting Share Card -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <!-- Google Fonts: Be Vietnam Pro & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Be Vietnam Pro"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            ocean: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              200: '#bae6fd',
+              300: '#7dd3fc',
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e',
+              950: '#082f49',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    .solid-card {
+      background-color: #ffffff;
+      border: 1px solid #e2e8f0;
+    }
+    .dark .solid-card {
+      background-color: #1e293b;
+      border: 1px solid #334155;
+    }
+    .hero-solid-card {
+      background-color: #0369a1;
+      border: 1px solid #0284c7;
+    }
+    .dark .hero-solid-card {
+      background-color: #0c4a6e;
+      border: 1px solid #075985;
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    /* Touch optimization */
+    button, input, select, textarea {
+      touch-action: manipulation;
+    }
+  </style>
+</head>
+
+<body class="bg-[#f0f7fd] dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-full font-sans antialiased transition-colors duration-200 flex flex-col selection:bg-ocean-600 selection:text-white pb-6 sm:pb-8">
+
+  <!-- Responsive Header -->
+  <header class="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2">
+      <!-- Logo & Title -->
+      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-ocean-600 text-white flex items-center justify-center shadow-sm shrink-0">
+          <i class="ph-bold ph-hourglass-high text-lg sm:text-xl"></i>
+        </div>
+        <div class="truncate">
+          <h1 class="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white leading-tight truncate">
+            Đã Bao Nhiêu Ngày?
+          </h1>
+          <p class="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium truncate hidden xs:block">Đến ngày hiện tại • DD/MM/YYYY</p>
+        </div>
+      </div>
+
+      <!-- Action Controls (Optimized for Mobile Touch) -->
+      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <button id="openBirthdayStudioBtn" title="Studio Thiệp Mừng Sinh Nhật" class="h-9 px-2.5 sm:px-3.5 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-extrabold text-xs flex items-center gap-1.5 transition shadow-sm">
+          <span class="text-sm">🎂</span>
+          <span class="hidden md:inline">Thiệp Sinh Nhật</span>
+        </button>
+
+        <button id="celebrateBtn" title="Hiệu ứng chúc mừng" class="h-9 w-9 sm:w-auto sm:px-3 rounded-xl bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/60 dark:hover:bg-amber-900/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95">
+          <i class="ph-bold ph-sparkle text-amber-500 text-base"></i>
+          <span class="hidden lg:inline">Ăn Mừng</span>
+        </button>
+
+        <button id="openCardPreviewBtn" title="Tạo thiệp kỷ niệm" class="h-9 px-2.5 sm:px-3.5 rounded-xl bg-ocean-600 hover:bg-ocean-700 active:scale-95 text-white font-bold text-xs flex items-center gap-1.5 transition shadow-sm">
+          <i class="ph-bold ph-sparkle text-amber-300 text-sm"></i>
+          <span class="hidden sm:inline">Tạo Thiệp</span>
+          <span class="sm:hidden">Thiệp</span>
+        </button>
+
+        <button id="themeToggleBtn" aria-label="Đổi chế độ sáng tối" class="h-9 w-9 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 flex items-center justify-center transition active:scale-95">
+          <i id="themeIcon" class="ph-bold ph-moon text-base"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout (Responsive 12-col grid) -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-8 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-start">
+
+    <!-- CỘT TRÁI (Form Nhập, Quick Presets, Can Chi, Kỷ Niệm) -->
+    <div class="lg:col-span-5 space-y-4 sm:space-y-6">
+
+      <!-- KHỐI CHỌN NGÀY DD/MM/YYYY -->
+      <section class="solid-card rounded-2xl p-4 sm:p-6 shadow-sm space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+          <div class="flex items-center gap-2">
+            <span class="p-2 rounded-xl bg-ocean-50 dark:bg-ocean-950 text-ocean-600 dark:text-ocean-400">
+              <i class="ph-bold ph-calendar-check text-lg"></i>
+            </span>
+            <div>
+              <h2 class="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white">Mốc Ngày Cần Tính</h2>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">Nhập trực tiếp hoặc chọn từ lịch</p>
+            </div>
+          </div>
+          <span id="badgeDirection" class="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg text-[10px] sm:text-[11px] font-bold uppercase tracking-wider bg-ocean-100 text-ocean-700 dark:bg-ocean-950 dark:text-ocean-300">
+            Quá khứ
+          </span>
+        </div>
+
+        <!-- Ô NHẬP DD/MM/YYYY VÀ NÚT CHỌN LỊCH (Responsive Flex) -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">
+            <span>Nhập định dạng DD/MM/YYYY:</span>
+            <span id="inputErrorMsg" class="text-[11px] font-bold text-rose-500 hidden items-center gap-1">
+              <i class="ph-bold ph-warning-circle"></i> Ngày không hợp lệ
+            </span>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-stretch gap-2">
+            <div class="relative flex-1">
+              <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <i class="ph-bold ph-pencil-simple text-base"></i>
+              </div>
+              <input
+                type="text"
+                id="formattedDateInput"
+                placeholder="DD/MM/YYYY"
+                maxlength="10"
+                inputmode="numeric"
+                autocomplete="off"
+                class="w-full pl-10 pr-10 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono text-base sm:text-lg font-bold text-slate-900 dark:text-white focus:outline-none focus:border-ocean-600 transition tracking-wider min-h-[44px]"
+              >
+              <button id="clearInputBtn" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500 p-1.5 hidden active:scale-95" title="Xóa nội dung">
+                <i class="ph-bold ph-x text-sm"></i>
+              </button>
+            </div>
+
+            <!-- Nút Bật Popup Lịch Lớn (Touch Friendly >= 44px) -->
+            <button
+              id="openDatePickerBtn"
+              class="px-4 py-3 min-h-[44px] rounded-xl bg-ocean-600 hover:bg-ocean-700 text-white font-bold text-sm shadow-sm active:scale-95 transition flex items-center justify-center gap-2 shrink-0"
+              title="Mở bảng lịch chọn ngày"
+            >
+              <i class="ph-bold ph-calendar-blank text-lg"></i>
+              <span>Chọn Lịch</span>
+            </button>
+          </div>
+          <p class="text-[11px] text-slate-400 dark:text-slate-500">Gõ số liên tục <span class="font-mono font-bold text-slate-600 dark:text-slate-300">01012024</span> sẽ tự phân tách thành <span class="font-mono font-bold text-ocean-600">01/01/2024</span></p>
+        </div>
+
+        <!-- PHÍM BẤM PRESET CHỌN NHANH (Cuộn ngang mượt hoặc Grid 2-3 cột) -->
+        <div class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+          <div class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+            <i class="ph-bold ph-lightning text-amber-500"></i> Phím tắt chọn nhanh:
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+            <button type="button" class="quick-preset-btn min-h-[38px] px-2.5 py-2 rounded-xl bg-slate-50 hover:bg-ocean-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 transition text-left active:scale-95" data-preset="today">
+              <i class="ph-bold ph-check-circle text-emerald-500 shrink-0"></i> <span class="truncate">Hôm nay</span>
+            </button>
+            <button type="button" class="quick-preset-btn min-h-[38px] px-2.5 py-2 rounded-xl bg-slate-50 hover:bg-ocean-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 transition text-left active:scale-95" data-preset="yesterday">
+              <i class="ph-bold ph-arrow-left text-sky-500 shrink-0"></i> <span class="truncate">Hôm qua</span>
+            </button>
+            <button type="button" class="quick-preset-btn min-h-[38px] px-2.5 py-2 rounded-xl bg-slate-50 hover:bg-ocean-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 transition text-left active:scale-95" data-preset="100ago">
+              <i class="ph-bold ph-star text-amber-500 shrink-0"></i> <span class="truncate">100 ngày trước</span>
+            </button>
+            <button type="button" class="quick-preset-btn min-h-[38px] px-2.5 py-2 rounded-xl bg-slate-50 hover:bg-ocean-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 transition text-left active:scale-95" data-preset="1yearAgo">
+              <i class="ph-bold ph-heart text-rose-500 shrink-0"></i> <span class="truncate">1 năm trước</span>
+            </button>
+            <button type="button" class="quick-preset-btn min-h-[38px] px-2.5 py-2 rounded-xl bg-slate-50 hover:bg-ocean-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 transition text-left active:scale-95" data-preset="startYear">
+              <i class="ph-bold ph-calendar text-ocean-600 shrink-0"></i> <span class="truncate">Đầu năm nay</span>
+            </button>
+            <button type="button" class="quick-preset-btn min-h-[38px] px-2.5 py-2 rounded-xl bg-slate-50 hover:bg-ocean-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 transition text-left active:scale-95" data-preset="endYear">
+              <i class="ph-bold ph-sparkle text-purple-500 shrink-0"></i> <span class="truncate">Cuối năm nay</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- TÙY CHỌN BAO GỒM CẢ HÔM NAY (+1 NGÀY) -->
+        <div class="pt-2 border-t border-slate-100 dark:border-slate-800">
+          <label class="flex items-center gap-2.5 cursor-pointer select-none">
+            <input type="checkbox" id="inclusiveCheck" class="w-4 h-4 text-ocean-600 rounded border-slate-300 dark:border-slate-700 focus:ring-ocean-500 cursor-pointer">
+            <div>
+              <span class="text-xs font-bold text-slate-800 dark:text-slate-200">Bao gồm cả ngày hôm nay (+1 ngày)</span>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">Tính trọn vẹn cả ngày cuối cùng vào chuỗi ngày.</p>
+            </div>
+          </label>
+        </div>
+      </section>
+
+      <!-- HỒ SƠ CHIÊM TINH & CAN CHI (Responsive Grid) -->
+      <section class="solid-card rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+        <h3 class="font-extrabold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+          <i class="ph-bold ph-info text-ocean-600 text-base"></i>
+          Thông Tin Mốc Ngày Đang Chọn
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 text-xs">
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700">
+            <span class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-400 block mb-0.5">Cung Hoàng Đạo</span>
+            <div id="zodiacSignDisplay" class="font-bold text-slate-900 dark:text-white text-sm">
+              Đang tính...
+            </div>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700">
+            <span class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-400 block mb-0.5">Năm Âm Lịch (Can Chi)</span>
+            <div id="canChiDisplay" class="font-bold text-slate-900 dark:text-white text-sm">
+              Đang tính...
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- BỘ SƯU TẬP KỶ NIỆM (Responsive Controls) -->
+      <section class="solid-card rounded-2xl p-4 sm:p-6 shadow-sm space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+          <h3 class="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white flex items-center gap-2">
+            <i class="ph-bold ph-bookmarks text-ocean-600"></i>
+            Kỷ Niệm Của Tôi (<span id="eventCountBadge" class="text-ocean-600 dark:text-ocean-400">0</span>)
+          </h3>
+          <button id="clearAllEventsBtn" class="text-[11px] font-bold text-rose-500 hover:underline active:scale-95">
+            Xóa hết
+          </button>
+        </div>
+
+        <div class="space-y-2">
+          <div class="flex gap-2">
+            <input
+              type="text"
+              id="eventTitleInput"
+              placeholder="Đặt tên: Ngày quen nhau, Nhận việc..."
+              class="flex-1 px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs sm:text-sm font-semibold focus:outline-none focus:border-ocean-600 min-h-[42px]"
+            >
+            <button
+              id="saveEventBtn"
+              class="px-4 py-2.5 min-h-[42px] rounded-xl bg-ocean-600 hover:bg-ocean-700 text-white text-xs sm:text-sm font-bold active:scale-95 transition flex items-center justify-center gap-1.5 shrink-0"
+            >
+              <i class="ph-bold ph-plus-circle text-base"></i>
+              <span>Lưu</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="eventsContainer" class="space-y-2 max-h-60 overflow-y-auto no-scrollbar pt-1">
+          <!-- Rendered via JS -->
+        </div>
+      </section>
+
+    </div>
+
+    <!-- CỘT PHẢI (HERO COUNTER, TICKER THỜI GIAN THỰC, STATS, MILESTONES) -->
+    <div class="lg:col-span-7 space-y-4 sm:space-y-6">
+
+      <!-- HERO BANNER: 1 Màu Xanh Solid Ocean (#0369a1 / #0c4a6e) -->
+      <div id="heroCardWrapper" class="hero-solid-card rounded-2xl p-5 sm:p-8 text-white shadow-sm transition-all duration-200">
+        
+        <div class="space-y-4 sm:space-y-5">
+
+          <!-- Header Hero -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-white/20 pb-3 sm:pb-4">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-white/10 text-xs font-bold uppercase tracking-wider text-ocean-100 border border-white/15 w-fit">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <span id="heroStatusText">Thời Gian Trôi Qua</span>
+            </div>
+
+            <!-- Ticker Hôm Nay (Co dãn đẹp trên mobile) -->
+            <div class="flex items-center justify-between sm:justify-start gap-2 px-3 py-1.5 rounded-lg bg-black/20 border border-white/15 font-mono text-xs w-fit">
+              <div class="flex items-center gap-1.5">
+                <i class="ph-bold ph-clock text-ocean-200"></i>
+                <span id="realtimeTodayDateStr" class="font-bold text-white">--/--/----</span>
+              </div>
+              <span class="text-white/40">|</span>
+              <span id="realtimeTickerClock" class="font-black text-white tracking-wider">00:00:00</span>
+            </div>
+          </div>
+
+          <!-- Mốc nguồn & Đích -->
+          <div class="space-y-1">
+            <div class="text-xs sm:text-sm text-ocean-100 font-medium leading-relaxed">
+              Từ mốc: <strong id="heroTargetDateStr" class="text-white font-extrabold underline decoration-white/50">--/--/----</strong>
+              <span class="mx-1.5 opacity-60">→</span>
+              Đến hôm nay: <strong id="heroTodayDateStr" class="text-white font-extrabold underline decoration-white/50">...</strong>
+            </div>
+
+            <!-- CON SỐ NGÀY TỰ ĐỘNG SCALE TRÊN MÀN HÌNH NHỎ -->
+            <div class="pt-2 flex items-baseline gap-2 sm:gap-3 flex-wrap">
+              <span id="bigDayCounter" class="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black font-mono tracking-tight text-white leading-none">
+                0
+              </span>
+              <span class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-ocean-100 tracking-tight">
+                ngày
+              </span>
+            </div>
+
+            <!-- Phân giải Năm - Tháng - Ngày -->
+            <div id="heroYMDText" class="text-sm sm:text-base md:text-lg font-bold text-ocean-100 flex items-center gap-2 pt-1">
+              <i class="ph-fill ph-calendar-star text-white shrink-0"></i>
+              <span class="leading-snug">Tính toán chi tiết...</span>
+            </div>
+          </div>
+
+          <!-- THANH TIẾN TRÌNH SOLID -->
+          <div class="pt-2 sm:pt-3 border-t border-white/20 space-y-1.5 sm:space-y-2">
+            <div class="flex justify-between items-center text-[11px] sm:text-xs font-semibold text-ocean-100">
+              <span id="timelineLabel" class="truncate pr-2">Tỷ lệ so với mốc tròn 1 năm (365 ngày)</span>
+              <span id="timelinePercent" class="font-mono font-extrabold text-white shrink-0">0%</span>
+            </div>
+            <div class="w-full h-2 sm:h-2.5 rounded-full bg-black/25 overflow-hidden">
+              <div id="timelineProgressBar" class="h-full rounded-full bg-white transition-all duration-500" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <!-- TICKER THỜI GIAN THỰC TỔNG GIỜ / PHÚT / GIÂY (Grid 3 Cột) -->
+          <div class="pt-2 sm:pt-3 border-t border-white/20">
+            <div class="text-[10px] sm:text-[11px] font-bold text-ocean-100 uppercase tracking-wider mb-2 flex items-center justify-between">
+              <span class="flex items-center gap-1.5"><i class="ph-bold ph-timer text-white"></i> Thời gian chi tiết đang đếm:</span>
+              <span class="text-[10px] text-ocean-200/90 font-mono">(Live Ticker)</span>
+            </div>
+            <div class="grid grid-cols-3 gap-1.5 sm:gap-2 text-center">
+              <div class="bg-black/20 rounded-xl p-2 sm:p-2.5 border border-white/10">
+                <div id="liveTotalHours" class="text-base sm:text-2xl font-black font-mono text-white truncate">0</div>
+                <div class="text-[9px] sm:text-xs uppercase font-bold text-ocean-100">Tổng Giờ</div>
+              </div>
+              <div class="bg-black/20 rounded-xl p-2 sm:p-2.5 border border-white/10">
+                <div id="liveTotalMins" class="text-base sm:text-2xl font-black font-mono text-white truncate">0</div>
+                <div class="text-[9px] sm:text-xs uppercase font-bold text-ocean-100">Tổng Phút</div>
+              </div>
+              <div class="bg-black/20 rounded-xl p-2 sm:p-2.5 border border-white/10">
+                <div id="liveTotalSecs" class="text-base sm:text-2xl font-black font-mono text-white truncate">0</div>
+                <div class="text-[9px] sm:text-xs uppercase font-bold text-ocean-100">Tổng Giây</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 4 THẺ THỐNG KÊ (Responsive Grid 2x2 trên mobile) -->
+      <section class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
+        <!-- Tuần & Ngày lẻ -->
+        <div class="solid-card rounded-2xl p-3 sm:p-4 flex flex-col justify-between shadow-sm">
+          <div class="text-[10px] sm:text-[11px] font-bold text-ocean-700 dark:text-ocean-400 uppercase tracking-wider flex items-center gap-1 sm:gap-1.5 truncate">
+            <i class="ph-bold ph-calendar text-sm sm:text-base shrink-0"></i> <span class="truncate">Tuần & Ngày Dư</span>
+          </div>
+          <div id="statWeeksDisplay" class="text-lg sm:text-2xl font-black font-mono text-slate-900 dark:text-white mt-1 truncate">0 tuần</div>
+          <div id="statRemDaysDisplay" class="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-semibold truncate">dư 0 ngày lẻ</div>
+        </div>
+
+        <!-- Số ngày làm việc -->
+        <div class="solid-card rounded-2xl p-3 sm:p-4 flex flex-col justify-between shadow-sm">
+          <div class="text-[10px] sm:text-[11px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider flex items-center gap-1 sm:gap-1.5 truncate">
+            <i class="ph-bold ph-briefcase text-sm sm:text-base shrink-0"></i> <span class="truncate">Ngày Làm Việc</span>
+          </div>
+          <div id="statWorkDays" class="text-lg sm:text-2xl font-black font-mono text-slate-900 dark:text-white mt-1 truncate">0 ngày</div>
+          <div class="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-semibold truncate">trừ T7 & CN</div>
+        </div>
+
+        <!-- Số cuối tuần -->
+        <div class="solid-card rounded-2xl p-3 sm:p-4 flex flex-col justify-between shadow-sm">
+          <div class="text-[10px] sm:text-[11px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider flex items-center gap-1 sm:gap-1.5 truncate">
+            <i class="ph-bold ph-coffee text-sm sm:text-base shrink-0"></i> <span class="truncate">Ngày Cuối Tuần</span>
+          </div>
+          <div id="statWeekendDays" class="text-lg sm:text-2xl font-black font-mono text-slate-900 dark:text-white mt-1 truncate">0 ngày</div>
+          <div class="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-semibold truncate">nghỉ ngơi</div>
+        </div>
+
+        <!-- Nhịp tim -->
+        <div class="solid-card rounded-2xl p-3 sm:p-4 flex flex-col justify-between shadow-sm">
+          <div class="text-[10px] sm:text-[11px] font-bold text-rose-700 dark:text-rose-400 uppercase tracking-wider flex items-center gap-1 sm:gap-1.5 truncate">
+            <i class="ph-bold ph-heartbeat text-sm sm:text-base shrink-0"></i> <span class="truncate">Nhịp Tim Đập</span>
+          </div>
+          <div id="statHeartBeats" class="text-lg sm:text-2xl font-black font-mono text-slate-900 dark:text-white mt-1 truncate">0 tr</div>
+          <div class="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-semibold truncate">ước tính 75 bpm</div>
+        </div>
+      </section>
+
+      <!-- HÀNH TRÌNH CÁC MỐC TRÒN (MILESTONES ROADMAP) -->
+      <section class="solid-card rounded-2xl p-4 sm:p-6 shadow-sm space-y-3 sm:space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+          <h3 class="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white flex items-center gap-2">
+            <i class="ph-bold ph-flag-banner text-ocean-600"></i>
+            Các Cột Mốc Đáng Nhớ (Milestones)
+          </h3>
+          <span class="text-[10px] sm:text-xs font-bold text-ocean-700 dark:text-ocean-300 bg-ocean-50 dark:bg-ocean-950 px-2.5 py-1 rounded-lg">
+            Roadmap
+          </span>
+        </div>
+
+        <p class="text-xs text-slate-500 dark:text-slate-400">
+          Các mốc tròn 100, 200, 365, 500, 1.000, 2.000 và 5.000 ngày:
+        </p>
+
+        <div id="milestonesGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 pt-1">
+          <!-- Rendered via JS -->
+        </div>
+
+        <!-- Thẻ kỷ niệm tròn năm tới -->
+        <div class="p-3.5 sm:p-4 rounded-xl bg-ocean-50 dark:bg-slate-800/80 border border-ocean-200 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div>
+            <div class="text-xs font-bold uppercase tracking-wider text-ocean-800 dark:text-ocean-300 flex items-center gap-1.5">
+              <i class="ph-fill ph-cake text-rose-500 text-base shrink-0"></i> Kỷ niệm tròn năm kế tiếp:
+            </div>
+            <div id="nextAnniversaryStr" class="text-xs sm:text-sm md:text-base font-bold text-slate-900 dark:text-white mt-1">
+              Đang tính...
+            </div>
+          </div>
+          <div class="sm:text-right shrink-0">
+            <span id="nextAnnivBadge" class="inline-block px-3 py-1 rounded-lg text-xs font-bold bg-ocean-600 text-white">
+              còn 0 ngày
+            </span>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- POP-UP DIALOG CHỌN LỊCH (TOUCH-FRIENDLY & MOBILE-OPTIMIZED) -->
+  <div id="datePickerModal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-200">
+    <div class="solid-card w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl p-4 sm:p-5 shadow-2xl space-y-3 sm:space-y-4 scale-95 transition-all duration-200 max-h-[92vh] overflow-y-auto no-scrollbar" id="datePickerContent">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+        <div>
+          <h3 class="font-extrabold text-base text-slate-900 dark:text-white flex items-center gap-2">
+            <i class="ph-bold ph-calendar text-ocean-600"></i>
+            Chọn Ngày Lịch
+          </h3>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400">Chạm chọn ngày bất kỳ trong tháng</p>
+        </div>
+        <button id="closeDatePickerBtn" class="text-slate-400 hover:text-rose-500 p-2 rounded-xl transition active:scale-95" aria-label="Đóng popup lịch">
+          <i class="ph-bold ph-x text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Tháng / Năm Controls -->
+      <div class="flex items-center justify-between gap-1.5 px-0.5">
+        <button id="calPrevMonthBtn" class="h-10 w-10 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition active:scale-95 shrink-0" title="Tháng trước">
+          <i class="ph-bold ph-caret-left text-base"></i>
+        </button>
+
+        <div class="flex items-center gap-1.5 flex-1 justify-center">
+          <select id="calMonthSelect" class="py-2 px-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-white cursor-pointer min-h-[40px]"></select>
+          <select id="calYearSelect" class="py-2 px-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-white cursor-pointer min-h-[40px]"></select>
+        </div>
+
+        <button id="calNextMonthBtn" class="h-10 w-10 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition active:scale-95 shrink-0" title="Tháng kế tiếp">
+          <i class="ph-bold ph-caret-right text-base"></i>
+        </button>
+      </div>
+
+      <!-- Thứ 2 -> Chủ Nhật -->
+      <div class="grid grid-cols-7 gap-1 text-center text-[11px] font-bold text-slate-400 dark:text-slate-400 py-1">
+        <div>T2</div>
+        <div>T3</div>
+        <div>T4</div>
+        <div>T5</div>
+        <div>T6</div>
+        <div class="text-ocean-600 font-bold">T7</div>
+        <div class="text-rose-500 font-bold">CN</div>
+      </div>
+
+      <!-- Lưới ngày Lịch (Touch Size >= 40px) -->
+      <div id="calDaysGrid" class="grid grid-cols-7 gap-1 text-center text-xs font-mono font-bold">
+        <!-- Rendered via JS -->
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+        <button id="calTodayBtn" class="px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-200 active:scale-95 transition min-h-[40px]">
+          Hôm nay
+        </button>
+        <button id="calConfirmBtn" class="px-5 py-2.5 rounded-xl bg-ocean-600 hover:bg-ocean-700 text-white text-xs font-bold active:scale-95 transition shadow-sm min-h-[40px]">
+          Xác nhận ngày
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL XEM TRƯỚC THIỆP KỶ NIỆM (CHIBI CARD PREVIEW - RESPONSIVE) -->
+  <div id="cardPreviewModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-200 overflow-y-auto">
+    <div class="bg-white dark:bg-slate-900 w-full max-w-lg rounded-3xl p-4 sm:p-6 shadow-2xl space-y-3 sm:space-y-4 scale-95 transition-all duration-200 border border-slate-200 dark:border-slate-800 my-auto max-h-[92vh] overflow-y-auto no-scrollbar" id="cardPreviewContent">
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="p-1.5 rounded-lg bg-ocean-50 dark:bg-ocean-950 text-ocean-600 text-lg shrink-0">
+            <i class="ph-bold ph-magic-wand"></i>
+          </span>
+          <div>
+            <h3 class="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white">Thiệp Kỷ Niệm Chibi Lung Linh</h3>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400">Chọn linh vật bạn thích hoặc đổi ngẫu nhiên</p>
+          </div>
+        </div>
+        <button id="closePreviewBtn" class="text-slate-400 hover:text-rose-500 p-2 rounded-xl transition active:scale-95" aria-label="Đóng popup">
+          <i class="ph-bold ph-x text-lg"></i>
+        </button>
+      </div>
+
+      <!-- CHỌN LINH VẬT CHIBI (Cuộn ngang trượt mượt trên Mobile) -->
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Lựa chọn Linh Vật Chibi:</span>
+          <button id="randomChibiBtn" type="button" class="text-xs font-bold text-ocean-600 dark:text-ocean-400 hover:underline flex items-center gap-1 active:scale-95">
+            <i class="ph-bold ph-shuffle"></i> Ngẫu nhiên
+          </button>
+        </div>
+        <div id="chibiPickerButtons" class="flex sm:grid sm:grid-cols-5 gap-2 overflow-x-auto no-scrollbar pb-1">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+
+      <!-- KHU VỰC PREVIEW THIỆP (Co dãn 100% không tràn màn hình điện thoại) -->
+      <div class="flex justify-center py-1 sm:py-2">
+        <div id="interactiveCardPreview" class="w-full max-w-[340px] sm:max-w-sm rounded-3xl bg-[#0369a1] text-white p-4 sm:p-5 shadow-xl border-2 border-ocean-300 relative overflow-hidden select-none">
+          <div class="flex justify-between items-center border-b border-white/20 pb-2.5">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white text-ocean-700 flex items-center justify-center font-bold text-xs sm:text-sm shadow">
+                <i class="ph-bold ph-hourglass-high"></i>
+              </div>
+              <span class="text-[11px] sm:text-xs font-extrabold tracking-wider">OCEAN DAY COUNTER</span>
+            </div>
+            <span class="text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/20 border border-white/25">Kỷ Niệm Đẹp</span>
+          </div>
+
+          <div class="pt-3 pb-2 text-center flex flex-col items-center">
+            <div id="chibiSvgSlot" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/15 border-2 border-white/30 p-1.5 sm:p-2 flex items-center justify-center shadow-inner mb-1.5"></div>
+            <span id="chibiNameBadge" class="text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded bg-black/25 text-ocean-100 uppercase tracking-wider mb-1.5">Bé Cá Voi</span>
+            <h4 id="previewCardTitle" class="text-base sm:text-lg font-black text-white truncate max-w-[240px] sm:max-w-[260px]">Hành Trình Kỷ Niệm Của Tôi</h4>
+            <div class="text-[10px] sm:text-[11px] text-ocean-100 mt-0.5">
+              Từ <span id="previewCardStart" class="font-bold underline decoration-white/40">--/--/----</span> đến <span id="previewCardToday" class="font-bold underline decoration-white/40">--/--/----</span>
+            </div>
+
+            <!-- BỐ CỤC KHÔNG BAO GIỜ BỊ ĐÈ CHỮ -->
+            <div class="my-3 sm:my-4 py-2.5 sm:py-3 px-3 sm:px-4 rounded-2xl bg-black/25 border border-white/20 w-full flex flex-col items-center justify-center">
+              <div id="previewCardBigDays" class="text-4xl sm:text-5xl font-black font-mono tracking-tight text-white leading-none">0</div>
+              <div class="text-[10px] sm:text-[11px] font-black text-ocean-200 tracking-widest uppercase mt-2">NGÀY ĐÃ TRÔI QUA</div>
+            </div>
+
+            <div id="previewCardYMD" class="text-[11px] sm:text-xs font-bold text-white bg-white/15 py-1 sm:py-1.5 px-3 rounded-xl border border-white/20 truncate max-w-full">-- năm -- tháng -- ngày</div>
+          </div>
+
+          <div class="border-t border-white/20 pt-2.5 mt-2 flex justify-between items-center text-[9px] sm:text-[10px] text-ocean-100">
+            <span>✨ Trân trọng từng khoảnh khắc!</span>
+            <span class="font-mono opacity-70">#SolidOcean</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+        <button id="cancelPreviewBtn" class="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-95 transition min-h-[40px]">
+          Đóng
+        </button>
+        <button id="downloadCardPngBtn" class="px-4 sm:px-5 py-2.5 rounded-xl bg-ocean-600 hover:bg-ocean-700 text-white text-xs font-bold active:scale-95 transition flex items-center gap-1.5 shadow-sm min-h-[40px]">
+          <i class="ph-bold ph-download-simple text-base"></i>
+          <span>Tải Ảnh PNG</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STUDIO THIỆP MỪNG SINH NHẬT LUNG LINH (RESPONSIVE FULL-SCREEN MODAL ON MOBILE) -->
+  <div id="birthdayStudioModal" class="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-slate-950/80 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-200 overflow-y-auto">
+    <div class="bg-white dark:bg-slate-900 w-full max-w-4xl rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4 sm:space-y-5 scale-95 transition-all duration-200 border border-slate-200 dark:border-slate-800 my-auto max-h-[94vh] overflow-y-auto no-scrollbar" id="birthdayStudioContent">
+      
+      <!-- Studio Header -->
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+        <div class="flex items-center gap-2 sm:gap-2.5">
+          <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center text-lg sm:text-xl font-bold shadow-inner shrink-0">
+            🎂
+          </div>
+          <div>
+            <h3 class="font-extrabold text-sm sm:text-lg text-slate-900 dark:text-white flex items-center gap-1.5">
+              <span>Studio Thiệp Sinh Nhật</span>
+              <span class="px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-extrabold bg-rose-100 text-rose-600 dark:bg-rose-950 dark:text-rose-300 uppercase">Pro</span>
+            </h3>
+            <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Tạo thiệp sinh nhật cá nhân hóa với lời chúc & chibi cute</p>
+          </div>
+        </div>
+        <button id="closeBirthdayModalBtn" class="text-slate-400 hover:text-rose-500 p-2 rounded-xl transition active:scale-95" aria-label="Đóng popup sinh nhật">
+          <i class="ph-bold ph-x text-lg sm:text-xl"></i>
+        </button>
+      </div>
+
+      <!-- Studio Body Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-start">
+        
+        <!-- Cột Trái (Tùy Biến Thông Tin & Lời Chúc) -->
+        <div class="lg:col-span-6 space-y-3 sm:space-y-4 text-xs">
+          <!-- Tên người sinh nhật & Ngày sinh -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
+            <div>
+              <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Tên chủ nhân sinh nhật:</label>
+              <input type="text" id="bdayNameInput" value="Minh Thư ✨" placeholder="VD: Bảo Nam, Bé Mèo..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 font-bold text-slate-900 dark:text-white text-xs focus:ring-1 focus:ring-rose-500 outline-none min-h-[40px]">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Ngày sinh (DD/MM/YYYY):</label>
+              <input type="text" id="bdayDateInput" placeholder="DD/MM/YYYY" maxlength="10" inputmode="numeric" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 font-mono font-bold text-slate-900 dark:text-white text-xs focus:ring-1 focus:ring-rose-500 outline-none min-h-[40px]">
+            </div>
+          </div>
+
+          <!-- Lựa chọn Chibi Sinh Nhật (Cuộn ngang trên màn hình siêu nhỏ) -->
+          <div class="space-y-1.5">
+            <label class="block font-bold text-slate-700 dark:text-slate-300">Linh vật Chibi Tiệc Sinh Nhật:</label>
+            <div class="grid grid-cols-4 gap-2" id="bdayChibiSelector">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Lựa chọn Theme Màu Thiệp -->
+          <div class="space-y-1.5">
+            <label class="block font-bold text-slate-700 dark:text-slate-300">Tông màu sắc thiệp (Themes):</label>
+            <div class="grid grid-cols-5 gap-1.5" id="bdayThemeSelector">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Lời chúc sinh nhật -->
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between">
+              <label class="font-bold text-slate-700 dark:text-slate-300">Lời chúc sinh nhật ý nghĩa:</label>
+              <button id="randomBdayWishBtn" type="button" class="text-rose-600 dark:text-rose-400 font-bold hover:underline flex items-center gap-1 active:scale-95">
+                <i class="ph-bold ph-shuffle"></i> Đổi câu khác
+              </button>
+            </div>
+            <textarea id="bdayWishInput" rows="2" class="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-medium focus:ring-1 focus:ring-rose-500 outline-none resize-none leading-relaxed"></textarea>
+          </div>
+
+          <!-- Chọn nhanh lời chúc (Cuộn ngang mềm mại) -->
+          <div class="space-y-1">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Mẫu lời chúc chọn nhanh:</span>
+            <div class="flex flex-wrap gap-1.5" id="bdayQuickWishes">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Cột Phải: Live Preview Thiệp Sinh Nhật -->
+        <div class="lg:col-span-6 flex flex-col items-center justify-center space-y-3 pt-2 lg:pt-0">
+          <!-- BẢN THIỆP SINH NHẬT PREVIEW TRỰC TIẾP -->
+          <div id="bdayPreviewTarget" class="w-full max-w-[320px] sm:max-w-[350px] rounded-3xl p-4 sm:p-5 text-white shadow-xl relative overflow-hidden transition-all duration-300 border-2 select-none">
+            <div class="absolute -top-10 -right-10 w-28 h-28 rounded-full bg-white/10 pointer-events-none"></div>
+            <div class="absolute -bottom-10 -left-10 w-32 h-32 rounded-full bg-white/10 pointer-events-none"></div>
+            <div class="absolute top-1/2 -right-6 text-2xl opacity-20 pointer-events-none">🎈</div>
+            <div class="absolute top-12 -left-4 text-2xl opacity-20 pointer-events-none">🎁</div>
+
+            <!-- Header Badge -->
+            <div class="flex items-center justify-between border-b border-white/20 pb-2 relative z-10">
+              <span class="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-white/20 border border-white/30 flex items-center gap-1 shadow-sm">
+                <span>🎉</span> HAPPY BIRTHDAY
+              </span>
+              <span id="bdayCardZodiacBadge" class="text-[9px] sm:text-[10px] font-bold text-white/90 bg-black/20 px-2 py-0.5 rounded-md">
+                Ma Kết ♑
+              </span>
+            </div>
+
+            <!-- Avatar & Info -->
+            <div class="pt-2.5 pb-1.5 text-center flex flex-col items-center relative z-10">
+              <div id="bdayCardChibiContainer" class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/20 border-2 border-white/40 p-1.5 sm:p-2 flex items-center justify-center relative shadow-inner mb-1.5">
+                <div id="bdayCardChibiSlot" class="w-full h-full flex items-center justify-center"></div>
+                <div class="absolute -top-2 -right-2 text-base animate-bounce">👑</div>
+              </div>
+
+              <h4 id="bdayCardNameDisplay" class="text-lg sm:text-xl font-black text-white tracking-wide truncate max-w-[260px]">
+                Minh Thư ✨
+              </h4>
+              <div id="bdayCardAgeSubtext" class="text-[11px] sm:text-xs font-bold text-white/90 mt-0.5">
+                Mừng ngày bạn có mặt trên đời!
+              </div>
+
+              <!-- Lời Chúc -->
+              <div class="my-2.5 px-3 py-2 rounded-2xl bg-black/20 border border-white/15 w-full text-center">
+                <p id="bdayCardWishDisplay" class="text-[11px] sm:text-xs italic font-medium leading-relaxed text-white/95 line-clamp-3">
+                  "Chúc bạn tuổi mới luôn rực rỡ, bình an, ngập tràn may mắn và biến mọi ước mơ thành hiện thực!"
+                </p>
+              </div>
+
+              <!-- Bộ Thống Kê Sinh Nhật Độc Quyền (Không lệch chữ) -->
+              <div class="grid grid-cols-2 gap-2 w-full text-center">
+                <div class="p-2 sm:p-2.5 rounded-xl bg-white/15 border border-white/20">
+                  <div id="bdayCardTotalDays" class="text-xl sm:text-2xl font-black font-mono leading-none text-white">0</div>
+                  <div class="text-[8px] sm:text-[9px] uppercase font-extrabold tracking-wider text-white/80 mt-1">Ngày trên đời</div>
+                </div>
+                <div class="p-2 sm:p-2.5 rounded-xl bg-white/15 border border-white/20">
+                  <div id="bdayCardNextDays" class="text-xl sm:text-2xl font-black font-mono leading-none text-amber-300">0</div>
+                  <div class="text-[8px] sm:text-[9px] uppercase font-extrabold tracking-wider text-white/80 mt-1">Ngày tới sinh nhật</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="border-t border-white/20 pt-2 mt-1.5 flex justify-between items-center text-[9px] sm:text-[10px] text-white/80 relative z-10 font-medium">
+              <span class="flex items-center gap-1">✨ Thổi nến ước nguyện</span>
+              <span class="font-mono text-white/70">#BirthdayStudio</span>
+            </div>
+          </div>
+
+          <!-- Quick Action Buttons -->
+          <div class="flex items-center gap-2 pt-1 w-full justify-center">
+            <button id="bdayConfettiBtn" type="button" class="px-3 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm active:scale-95 transition min-h-[40px]">
+              <span>🎊</span> Pháo Hoa
+            </button>
+            <button id="downloadBdayPngBtn" type="button" class="px-4 sm:px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-lg active:scale-95 transition min-h-[40px]">
+              <i class="ph-bold ph-download-simple text-sm"></i>
+              <span>Tải Thiệp Sinh Nhật PNG</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CONTAINER XUẤT ẢNH SINH NHẬT CỰC NÉT CHUẨN HTML2CANVAS (KHÔNG LỆCH CHỮ) -->
+  <div id="exportBdayWrapper" class="fixed -left-[9999px] top-0 w-[480px] p-7 rounded-3xl text-white font-sans border-4 shadow-2xl relative overflow-hidden select-none">
+    <div class="absolute -top-12 -right-12 w-44 h-44 rounded-full bg-white/10 pointer-events-none"></div>
+    <div class="absolute -bottom-12 -left-12 w-48 h-48 rounded-full bg-white/10 pointer-events-none"></div>
+    <div class="absolute top-1/2 -right-6 text-4xl opacity-20 pointer-events-none">🎈</div>
+    <div class="absolute top-20 -left-6 text-4xl opacity-20 pointer-events-none">🎁</div>
+
+    <!-- Header -->
+    <div class="flex justify-between items-center border-b border-white/25 pb-3.5 mb-3 relative z-10">
+      <span class="text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full bg-white/20 border border-white/30 flex items-center gap-1.5 shadow-sm">
+        <span>🎉</span> HAPPY BIRTHDAY TO YOU
+      </span>
+      <span id="exportBdayZodiacBadge" class="text-xs font-bold text-white bg-black/25 px-2.5 py-1 rounded-lg">
+        Ma Kết ♑
+      </span>
+    </div>
+
+    <!-- Body -->
+    <div class="py-2 text-center flex flex-col items-center relative z-10">
+      <div id="exportBdayChibiContainer" class="w-32 h-32 rounded-3xl bg-white/20 border-2 border-white/40 p-3 flex items-center justify-center relative shadow-inner mb-3">
+        <div id="exportBdayChibiSlot" class="w-full h-full flex items-center justify-center"></div>
+        <div class="absolute -top-3 -right-3 text-2xl">👑</div>
+      </div>
+
+      <h3 id="exportBdayNameDisplay" class="text-2xl font-black text-white tracking-wide truncate max-w-[400px]">
+        Minh Thư ✨
+      </h3>
+      <div id="exportBdayAgeSubtext" class="text-sm font-bold text-white/90 mt-1">
+        Tròn 22 tuổi rực rỡ!
+      </div>
+
+      <!-- Khối Lời Chúc (Độc lập, căn chỉnh mượt mà) -->
+      <div class="my-4 px-5 py-3.5 rounded-2xl bg-black/25 border border-white/20 w-full text-center">
+        <p id="exportBdayWishDisplay" class="text-sm italic font-medium leading-relaxed text-white">
+          "Chúc bạn một tuổi mới luôn tỏa sáng như những vì sao, bình an trong tâm hồn và luôn mỉm cười thật tươi mỗi ngày!"
+        </p>
+      </div>
+
+      <!-- Thống Kê 2 Cột -->
+      <div class="grid grid-cols-2 gap-3 w-full text-center my-2">
+        <div class="p-3.5 rounded-2xl bg-white/15 border border-white/20">
+          <div id="exportBdayTotalDays" class="text-3xl font-black font-mono leading-none text-white">0</div>
+          <div class="text-[10px] uppercase font-extrabold tracking-wider text-white/80 mt-2">Ngày rực rỡ có mặt trên đời</div>
+        </div>
+        <div class="p-3.5 rounded-2xl bg-white/15 border border-white/20">
+          <div id="exportBdayNextDays" class="text-3xl font-black font-mono leading-none text-amber-300">0</div>
+          <div class="text-[10px] uppercase font-extrabold tracking-wider text-white/80 mt-2">Ngày nữa tới sinh nhật kế</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="border-t border-white/20 pt-3.5 mt-3 flex justify-between items-center text-xs text-white/80 relative z-10">
+      <div class="flex items-center gap-1.5">
+        <span>✨</span> Chúc bạn một ngày sinh nhật thật hạnh phúc!
+      </div>
+      <div class="font-mono text-[11px] text-white/70">#HappyBirthdayStudio</div>
+    </div>
+  </div>
+
+  <!-- CONTAINER XUẤT ẢNH CHUẨN HTML2CANVAS (CỐ ĐỊNH LAYOUT, KHÔNG BỊ TRÀN CHỮ) -->
+  <div id="exportCardWrapper" class="fixed -left-[9999px] top-0 w-[480px] p-7 rounded-3xl bg-[#0369a1] text-white font-sans border-4 border-ocean-300 shadow-2xl relative overflow-hidden">
+    <div class="absolute -top-10 -right-10 w-36 h-36 rounded-full bg-white/10 pointer-events-none"></div>
+    <div class="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-white/10 pointer-events-none"></div>
+
+    <!-- Header -->
+    <div class="flex justify-between items-center border-b border-white/20 pb-4 mb-4 relative z-10">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-xl bg-white text-ocean-700 flex items-center justify-center text-xl font-bold shadow-md">
+          <i class="ph-bold ph-hourglass-high"></i>
+        </div>
+        <div>
+          <div class="font-black text-base text-white tracking-wider">OCEAN DAY COUNTER</div>
+          <div class="text-[11px] text-ocean-200 font-medium">Khoảnh Khắc Kỷ Niệm Tuyệt Đẹp</div>
+        </div>
+      </div>
+      <div class="px-3 py-1 rounded-full bg-white/20 border border-white/25 text-xs font-bold text-white flex items-center gap-1.5 shadow-sm">
+        <i class="ph-fill ph-sparkle text-amber-300"></i> Kỷ Niệm Đẹp
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="py-2 text-center flex flex-col items-center relative z-10">
+      <div id="exportCardChibiSlot" class="w-28 h-28 rounded-2xl bg-white/15 border-2 border-white/30 p-2.5 flex items-center justify-center shadow-inner relative mb-2">
+      </div>
+      <div id="exportChibiNameBadge" class="text-[11px] font-bold px-2.5 py-0.5 rounded-md bg-black/25 text-ocean-100 uppercase tracking-wider mb-2">
+        Bé Cá Voi
+      </div>
+
+      <div id="exportCardTitle" class="text-xl font-black text-white max-w-[420px] truncate leading-tight">Hành Trình Kỷ Niệm Của Tôi</div>
+      <div class="text-xs text-ocean-100 mt-1.5">
+        Từ ngày <span id="exportCardStart" class="font-extrabold text-white underline decoration-white/50">--/--/----</span> đến <span id="exportCardToday" class="font-extrabold text-white underline decoration-white/50">--/--/----</span>
+      </div>
+
+      <!-- Khối Box Số Ngày Rõ Ràng: line-height độc lập -->
+      <div class="my-5 py-4 px-6 rounded-2xl bg-black/25 border border-white/20 w-full flex flex-col items-center justify-center">
+        <div id="exportCardBigDays" class="text-6xl font-black font-mono tracking-tight text-white leading-none">
+          0
+        </div>
+        <div class="text-xs font-black text-ocean-200 tracking-widest uppercase mt-3">
+          NGÀY ĐÃ TRÔI QUA
+        </div>
+      </div>
+
+      <div id="exportCardYMD" class="text-sm font-bold text-white bg-white/15 py-2 px-5 rounded-xl border border-white/20 inline-block shadow-sm">
+        -- năm -- tháng -- ngày
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="border-t border-white/20 pt-4 mt-3 flex justify-between items-center text-xs text-ocean-100 relative z-10">
+      <div class="flex items-center gap-1.5">
+        <i class="ph-fill ph-heart text-rose-300"></i> Trân trọng từng khoảnh khắc trôi qua!
+      </div>
+      <div class="font-mono text-[11px] text-white/70">#SolidOceanEdition</div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Box -->
+  <div id="toastMessage" class="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-xs sm:text-sm font-bold shadow-lg transition-all duration-200 opacity-0 pointer-events-none translate-y-3 z-50 flex items-center gap-2 border border-slate-700 dark:border-slate-200 max-w-[90vw] truncate">
+    <i class="ph-bold ph-check-circle text-emerald-400 dark:text-emerald-600 text-base shrink-0"></i>
+    <span id="toastText" class="truncate">Thành công!</span>
+  </div>
+
+  <footer class="mt-auto border-t border-slate-200 dark:border-slate-800 py-4 sm:py-5 text-center text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">
+    <div class="max-w-7xl mx-auto px-4">
+      Đã Bao Nhiêu Ngày •
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // DOM Elements
+      const formattedDateInput = document.getElementById('formattedDateInput');
+      const clearInputBtn = document.getElementById('clearInputBtn');
+      const inputErrorMsg = document.getElementById('inputErrorMsg');
+      const openDatePickerBtn = document.getElementById('openDatePickerBtn');
+      const inclusiveCheck = document.getElementById('inclusiveCheck');
+      const badgeDirection = document.getElementById('badgeDirection');
+
+      const zodiacSignDisplay = document.getElementById('zodiacSignDisplay');
+      const canChiDisplay = document.getElementById('canChiDisplay');
+
+      const heroStatusText = document.getElementById('heroStatusText');
+      const heroTargetDateStr = document.getElementById('heroTargetDateStr');
+      const heroTodayDateStr = document.getElementById('heroTodayDateStr');
+      const bigDayCounter = document.getElementById('bigDayCounter');
+      const heroYMDText = document.getElementById('heroYMDText');
+
+      const realtimeTodayDateStr = document.getElementById('realtimeTodayDateStr');
+      const realtimeTickerClock = document.getElementById('realtimeTickerClock');
+
+      const timelineLabel = document.getElementById('timelineLabel');
+      const timelinePercent = document.getElementById('timelinePercent');
+      const timelineProgressBar = document.getElementById('timelineProgressBar');
+
+      const liveTotalHours = document.getElementById('liveTotalHours');
+      const liveTotalMins = document.getElementById('liveTotalMins');
+      const liveTotalSecs = document.getElementById('liveTotalSecs');
+
+      const statWeeksDisplay = document.getElementById('statWeeksDisplay');
+      const statRemDaysDisplay = document.getElementById('statRemDaysDisplay');
+      const statWorkDays = document.getElementById('statWorkDays');
+      const statWeekendDays = document.getElementById('statWeekendDays');
+      const statHeartBeats = document.getElementById('statHeartBeats');
+
+      const milestonesGrid = document.getElementById('milestonesGrid');
+      const nextAnniversaryStr = document.getElementById('nextAnniversaryStr');
+      const nextAnnivBadge = document.getElementById('nextAnnivBadge');
+
+      const eventTitleInput = document.getElementById('eventTitleInput');
+      const saveEventBtn = document.getElementById('saveEventBtn');
+      const eventsContainer = document.getElementById('eventsContainer');
+      const eventCountBadge = document.getElementById('eventCountBadge');
+      const clearAllEventsBtn = document.getElementById('clearAllEventsBtn');
+
+      // Datepicker Modal
+      const datePickerModal = document.getElementById('datePickerModal');
+      const datePickerContent = document.getElementById('datePickerContent');
+      const closeDatePickerBtn = document.getElementById('closeDatePickerBtn');
+      const calPrevMonthBtn = document.getElementById('calPrevMonthBtn');
+      const calNextMonthBtn = document.getElementById('calNextMonthBtn');
+      const calMonthSelect = document.getElementById('calMonthSelect');
+      const calYearSelect = document.getElementById('calYearSelect');
+      const calDaysGrid = document.getElementById('calDaysGrid');
+      const calTodayBtn = document.getElementById('calTodayBtn');
+      const calConfirmBtn = document.getElementById('calConfirmBtn');
+
+      const themeToggleBtn = document.getElementById('themeToggleBtn');
+      const themeIcon = document.getElementById('themeIcon');
+      const celebrateBtn = document.getElementById('celebrateBtn');
+      const openCardPreviewBtn = document.getElementById('openCardPreviewBtn');
+      const cardPreviewModal = document.getElementById('cardPreviewModal');
+      const cardPreviewContent = document.getElementById('cardPreviewContent');
+      const closePreviewBtn = document.getElementById('closePreviewBtn');
+      const cancelPreviewBtn = document.getElementById('cancelPreviewBtn');
+      const downloadCardPngBtn = document.getElementById('downloadCardPngBtn');
+      const chibiPickerButtons = document.getElementById('chibiPickerButtons');
+      const randomChibiBtn = document.getElementById('randomChibiBtn');
+      const chibiSvgSlot = document.getElementById('chibiSvgSlot');
+      const chibiNameBadge = document.getElementById('chibiNameBadge');
+      const previewCardTitle = document.getElementById('previewCardTitle');
+      const previewCardStart = document.getElementById('previewCardStart');
+      const previewCardToday = document.getElementById('previewCardToday');
+      const previewCardBigDays = document.getElementById('previewCardBigDays');
+      const previewCardYMD = document.getElementById('previewCardYMD');
+
+      const toastMessage = document.getElementById('toastMessage');
+      const toastText = document.getElementById('toastText');
+
+      // Birthday Studio Elements
+      const openBirthdayStudioBtn = document.getElementById('openBirthdayStudioBtn');
+      const birthdayStudioModal = document.getElementById('birthdayStudioModal');
+      const birthdayStudioContent = document.getElementById('birthdayStudioContent');
+      const closeBirthdayModalBtn = document.getElementById('closeBirthdayModalBtn');
+      const bdayNameInput = document.getElementById('bdayNameInput');
+      const bdayDateInput = document.getElementById('bdayDateInput');
+      const bdayWishInput = document.getElementById('bdayWishInput');
+      const bdayChibiSelector = document.getElementById('bdayChibiSelector');
+      const bdayThemeSelector = document.getElementById('bdayThemeSelector');
+      const bdayQuickWishes = document.getElementById('bdayQuickWishes');
+      const randomBdayWishBtn = document.getElementById('randomBdayWishBtn');
+      const bdayPreviewTarget = document.getElementById('bdayPreviewTarget');
+      const bdayCardZodiacBadge = document.getElementById('bdayCardZodiacBadge');
+      const bdayCardChibiSlot = document.getElementById('bdayCardChibiSlot');
+      const bdayCardNameDisplay = document.getElementById('bdayCardNameDisplay');
+      const bdayCardAgeSubtext = document.getElementById('bdayCardAgeSubtext');
+      const bdayCardWishDisplay = document.getElementById('bdayCardWishDisplay');
+      const bdayCardTotalDays = document.getElementById('bdayCardTotalDays');
+      const bdayCardNextDays = document.getElementById('bdayCardNextDays');
+      const bdayConfettiBtn = document.getElementById('bdayConfettiBtn');
+      const downloadBdayPngBtn = document.getElementById('downloadBdayPngBtn');
+
+      const STORAGE_EVENTS_KEY = 'ocean_milestones_storage_v4';
+      const STORAGE_THEME_KEY = 'ocean_theme_choice';
+
+      // 5 CHIBIS CHO THIỆP KỶ NIỆM (SVG)
+      const CHIBI_LIST = [
+        {
+          id: 'whale',
+          name: 'Cá Voi Xanh',
+          svg: `<svg viewBox="0 0 100 100" class="w-full h-full drop-shadow">
+            <path d="M50 15 C50 10, 47 6, 45 4 M50 15 C52 9, 57 5, 60 4" stroke="#ffffff" stroke-width="3" stroke-linecap="round" fill="none"/>
+            <path d="M15 58 C15 35, 45 30, 75 42 C86 46, 92 58, 88 68 C84 76, 70 78, 48 78 C25 78, 15 72, 15 58 Z" fill="#38bdf8"/>
+            <path d="M22 65 C28 72, 45 76, 68 76 C55 70, 32 68, 22 65 Z" fill="#e0f2fe"/>
+            <ellipse cx="78" cy="50" rx="3.5" ry="5.5" fill="#0f172a"/>
+            <circle cx="79.5" cy="48" r="1.5" fill="#ffffff"/>
+            <circle cx="70" cy="58" r="3.5" fill="#f43f5e" opacity="0.6"/>
+            <path d="M72 58 Q76 63 80 58" stroke="#0f172a" stroke-width="2" stroke-linecap="round" fill="none"/>
+            <path d="M42 62 C35 68, 28 66, 32 58" fill="#0284c7"/>
+            <path d="M15 58 Q5 48 4 40 Q10 44 14 52 Q12 40 18 42 Z" fill="#0284c7"/>
+          </svg>`
+        },
+        {
+          id: 'cat',
+          name: 'Mèo Ôm Tim',
+          svg: `<svg viewBox="0 0 100 100" class="w-full h-full drop-shadow">
+            <polygon points="22,40 32,16 45,34" fill="#fbbf24"/>
+            <polygon points="27,37 33,23 41,33" fill="#f472b6"/>
+            <polygon points="78,40 68,16 55,34" fill="#fbbf24"/>
+            <polygon points="73,37 67,23 59,33" fill="#f472b6"/>
+            <ellipse cx="50" cy="50" rx="33" ry="29" fill="#fef3c7"/>
+            <circle cx="38" cy="48" r="4" fill="#1e293b"/>
+            <circle cx="39.5" cy="46" r="1.5" fill="#ffffff"/>
+            <circle cx="62" cy="48" r="4" fill="#1e293b"/>
+            <circle cx="63.5" cy="46" r="1.5" fill="#ffffff"/>
+            <circle cx="31" cy="55" r="4" fill="#f43f5e" opacity="0.5"/>
+            <circle cx="69" cy="55" r="4" fill="#f43f5e" opacity="0.5"/>
+            <polygon points="50,53 48,51 52,51" fill="#f472b6"/>
+            <path d="M46 56 Q50 60 54 56" stroke="#1e293b" stroke-width="2" stroke-linecap="round" fill="none"/>
+            <path d="M50 78 C50 78, 35 68, 35 59 C35 53, 40 50, 45 53 C50 56, 50 56, 50 56 C50 56, 50 56, 55 53 C60 50, 65 53, 65 59 C65 68, 50 78, 50 78 Z" fill="#ef4444"/>
+            <circle cx="36" cy="62" r="5" fill="#fef3c7"/>
+            <circle cx="64" cy="62" r="5" fill="#fef3c7"/>
+          </svg>`
+        },
+        {
+          id: 'penguin',
+          name: 'Bé Cánh Cụt',
+          svg: `<svg viewBox="0 0 100 100" class="w-full h-full drop-shadow">
+            <ellipse cx="50" cy="56" rx="30" ry="34" fill="#0f172a"/>
+            <ellipse cx="50" cy="60" rx="20" ry="26" fill="#ffffff"/>
+            <ellipse cx="20" cy="58" rx="7" ry="16" fill="#0f172a" transform="rotate(20 20 58)"/>
+            <ellipse cx="80" cy="58" rx="7" ry="16" fill="#0f172a" transform="rotate(-20 80 58)"/>
+            <ellipse cx="42" cy="46" rx="3.5" ry="5" fill="#0f172a"/>
+            <circle cx="43" cy="44" r="1.5" fill="#ffffff"/>
+            <ellipse cx="58" cy="46" rx="3.5" ry="5" fill="#0f172a"/>
+            <circle cx="59" cy="44" r="1.5" fill="#ffffff"/>
+            <circle cx="34" cy="52" r="3.5" fill="#f43f5e" opacity="0.6"/>
+            <circle cx="66" cy="52" r="3.5" fill="#f43f5e" opacity="0.6"/>
+            <polygon points="46,50 54,50 50,57" fill="#f59e0b"/>
+            <path d="M28 34 Q50 18 72 34 Z" fill="#ef4444"/>
+            <rect x="25" y="32" width="50" height="7" rx="3" fill="#ffffff"/>
+            <circle cx="50" cy="18" r="6" fill="#ffffff"/>
+            <ellipse cx="41" cy="90" rx="7" ry="4" fill="#f59e0b"/>
+            <ellipse cx="59" cy="90" rx="7" ry="4" fill="#f59e0b"/>
+          </svg>`
+        },
+        {
+          id: 'bunny',
+          name: 'Thỏ Trắng',
+          svg: `<svg viewBox="0 0 100 100" class="w-full h-full drop-shadow">
+            <ellipse cx="36" cy="24" rx="7" ry="20" fill="#ffffff"/>
+            <ellipse cx="36" cy="24" rx="4" ry="15" fill="#f472b6"/>
+            <ellipse cx="64" cy="24" rx="7" ry="20" fill="#ffffff"/>
+            <ellipse cx="64" cy="24" rx="4" ry="15" fill="#f472b6"/>
+            <circle cx="50" cy="58" r="28" fill="#ffffff"/>
+            <circle cx="40" cy="54" r="3.5" fill="#1e293b"/>
+            <circle cx="41" cy="52.5" r="1.2" fill="#ffffff"/>
+            <circle cx="60" cy="54" r="3.5" fill="#1e293b"/>
+            <circle cx="61" cy="52.5" r="1.2" fill="#ffffff"/>
+            <circle cx="32" cy="62" r="4.5" fill="#f43f5e" opacity="0.5"/>
+            <circle cx="68" cy="62" r="4.5" fill="#f43f5e" opacity="0.5"/>
+            <ellipse cx="50" cy="59" rx="2" ry="1.5" fill="#f472b6"/>
+            <path d="M47 62 Q50 64 53 62" stroke="#1e293b" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+            <polygon points="44,82 56,82 50,77" fill="#38bdf8"/>
+            <polygon points="44,82 56,82 50,87" fill="#38bdf8"/>
+            <circle cx="50" cy="82" r="2.5" fill="#fbbf24"/>
+          </svg>`
+        },
+        {
+          id: 'astro',
+          name: 'Phi Hành Gia',
+          svg: `<svg viewBox="0 0 100 100" class="w-full h-full drop-shadow">
+            <circle cx="50" cy="46" r="30" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+            <rect x="29" y="32" width="42" height="26" rx="12" fill="#0f172a"/>
+            <ellipse cx="50" cy="45" rx="18" ry="10" fill="#0369a1"/>
+            <path d="M34 37 Q42 34 50 37" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" fill="none"/>
+            <line x1="50" y1="16" x2="50" y2="8" stroke="#cbd5e1" stroke-width="3"/>
+            <circle cx="50" cy="7" r="4" fill="#ef4444"/>
+            <rect x="34" y="72" width="32" height="20" rx="8" fill="#f8fafc"/>
+            <circle cx="43" cy="82" r="3" fill="#38bdf8"/>
+            <circle cx="57" cy="82" r="3" fill="#ef4444"/>
+          </svg>`
+        }
+      ];
+
+      // 4 CHIBI SINH NHẬT
+      const BDAY_CHIBIS = [
+        {
+          id: 'cake',
+          name: 'Bánh Kem Nến',
+          svg: `<svg viewBox="0 0 100 100" class="w-full h-full drop-shadow">
+            <path d="M50 12 C47 18, 45 22, 50 28 C55 22, 53 18, 50 12 Z" fill="#fbbf24"/>
+            <path d="M50 16 C48 19, 47 22, 50 25 C53 22, 52 19, 50 16 Z" fill="#ef4444"/>
+            <rect x="48" y="28" width="4" height="12" rx="2" fill="#38bdf8"/>
+            <rect x="32" y="40" width="36" height="20" rx="6" fill="#f472b6"/>
+            <path d="M32 46 Q38 52 44 46 Q50 52 56 46 Q62 52 68 46" stroke="#ffffff" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <circle cx="36" cy="40" r="3" fill="#ef4444"/>
+            <circle cx="50" cy="40" r="3" fill="#ef4444"/>
+            <circle cx="64" cy="40" r="3" fill="#ef4444"/>
+            <rect x="22" y="60" width="56" height="24" rx="8" fill="#ec4899"/>
+            <path d="M22 68 Q31 76 40 68 Q50 76 60 68 Q69 76 78 68" stroke="#ffffff" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <circle cx="43" cy="72" r="2.5" fill="#1e293b"/>
+            <circle cx="57" cy="72" r="2.5" fill="#1e293b"/>
+            <circle cx="37" cy="74" r="2" fill="#fb7185"/>
+            <circle cx="63" cy="74" r="2" fill="#fb7185"/>
+            <path d="M47 75 Q50 78 53 75" stroke="#1e293b" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+            <ellipse cx="50" cy="85" rx="36" ry="6" fill="#e2e8f0"/>
+          </svg>`
+        },
+        {
+          id: 'bear',
+          name: 'Gấu Nơ Bóng',
+          svg: `<svg viewBox="0 0 100 100" class="w-full h-full drop-shadow">
+            <ellipse cx="28" cy="22" rx="10" ry="13" fill="#f43f5e"/>
+            <ellipse cx="38" cy="18" rx="9" ry="12" fill="#38bdf8"/>
+            <path d="M28 35 Q35 48 42 54 M38 30 Q40 45 44 54" stroke="#ffffff" stroke-width="1.5" stroke-dasharray="2,2" fill="none"/>
+            <polygon points="50,15 62,38 42,38" fill="#fbbf24"/>
+            <circle cx="50" cy="14" r="3" fill="#f43f5e"/>
+            <circle cx="34" cy="40" r="8" fill="#b45309"/>
+            <circle cx="34" cy="40" r="4" fill="#fcd34d"/>
+            <circle cx="66" cy="40" r="8" fill="#b45309"/>
+            <circle cx="66" cy="40" r="4" fill="#fcd34d"/>
+            <circle cx="50" cy="54" r="20" fill="#d97706"/>
+            <circle cx="43" cy="51" r="2.5" fill="#1e293b"/>
+            <circle cx="57" cy="51" r="2.5" fill="#1e293b"/>
+            <circle cx="38" cy="56" r="3" fill="#fb7185" opacity="0.7"/>
+            <circle cx="62" cy="56" r="3" fill="#fb7185" opacity="0.7"/>
+            <ellipse cx="50" cy="57" rx="6" ry="4.5" fill="#fef3c7"/>
+            <circle cx="50" cy="55.5" r="2" fill="#1e293b"/>
+            <path d="M48 58 Q50 60 52 58" stroke="#1e293b" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+            <polygon points="45,71 55,71 50,75" fill="#ef4444"/>
+            <polygon points="45,77 55,77 50,73" fill="#ef4444"/>
+            <circle cx="50" cy="74" r="2" fill="#fbbf24"/>
+            <ellipse cx="50" cy="82" rx="14" ry="10" fill="#d97706"/>
+          </svg>`
+        },
+        {
+          id: 'cat_gift',
+          name: 'Mèo Hộp Quà',
+          svg: `<svg viewBox="0 0 100 100" class="w-full h-full drop-shadow">
+            <polygon points="32,32 40,16 48,28" fill="#f59e0b"/>
+            <polygon points="35,29 40,20 45,28" fill="#f472b6"/>
+            <polygon points="68,32 60,16 52,28" fill="#f59e0b"/>
+            <polygon points="65,29 60,20 55,28" fill="#f472b6"/>
+            <circle cx="50" cy="38" r="18" fill="#fef3c7"/>
+            <circle cx="43" cy="36" r="2.5" fill="#1e293b"/>
+            <circle cx="57" cy="36" r="2.5" fill="#1e293b"/>
+            <circle cx="38" cy="40" r="2.5" fill="#f43f5e" opacity="0.6"/>
+            <circle cx="62" cy="40" r="2.5" fill="#f43f5e" opacity="0.6"/>
+            <ellipse cx="50" cy="39" rx="1.5" ry="1" fill="#f472b6"/>
+            <path d="M47 41 Q50 43 53 41" stroke="#1e293b" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+            <circle cx="36" cy="54" r="4" fill="#fef3c7"/>
+            <circle cx="64" cy="54" r="4" fill="#fef3c7"/>
+            <rect x="25" y="52" width="50" height="36" rx="6" fill="#8b5cf6"/>
+            <rect x="21" y="48" width="58" height="8" rx="3" fill="#a78bfa"/>
+            <rect x="46" y="48" width="8" height="40" fill="#fbbf24"/>
+            <path d="M50 48 C44 40, 36 44, 46 48 Z" fill="#fbbf24"/>
+            <path d="M50 48 C56 40, 64 44, 54 48 Z" fill="#fbbf24"/>
+          </svg>`
+        },
+        {
+          id: 'party_pup',
+          name: 'Cún Bắn Pháo',
+          svg: `<svg viewBox="0 0 100 100" class="w-full h-full drop-shadow">
+            <polygon points="50,12 62,35 40,35" fill="#06b6d4"/>
+            <circle cx="50" cy="11" r="3" fill="#fbbf24"/>
+            <ellipse cx="30" cy="44" rx="7" ry="14" fill="#78350f" transform="rotate(-15 30 44)"/>
+            <ellipse cx="70" cy="44" rx="7" ry="14" fill="#78350f" transform="rotate(15 70 44)"/>
+            <circle cx="50" cy="46" r="20" fill="#fef08a"/>
+            <circle cx="43" cy="44" r="3" fill="#1e293b"/>
+            <circle cx="44" cy="43" r="1" fill="#ffffff"/>
+            <circle cx="57" cy="44" r="3" fill="#1e293b"/>
+            <circle cx="58" cy="43" r="1" fill="#ffffff"/>
+            <ellipse cx="50" cy="50" rx="3" ry="2" fill="#1e293b"/>
+            <path d="M47 53 Q50 56 53 53" stroke="#1e293b" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+            <polygon points="34,70 42,88 28,84" fill="#ec4899"/>
+            <ellipse cx="38" cy="72" rx="4" ry="2" fill="#f472b6" transform="rotate(-30 38 72)"/>
+            <circle cx="72" cy="30" r="2" fill="#fbbf24"/>
+            <circle cx="78" cy="22" r="3" fill="#10b981"/>
+          </svg>`
+        }
+      ];
+
+      // THEMES SINH NHẬT
+      const BDAY_THEMES = [
+        { id: 'pink', name: 'Hồng Pastel', bgClass: 'bg-[#db2777]', borderColor: '#f472b6', hex: '#db2777' },
+        { id: 'ocean', name: 'Xanh Biển', bgClass: 'bg-[#0369a1]', borderColor: '#38bdf8', hex: '#0369a1' },
+        { id: 'purple', name: 'Tím Mộng', bgClass: 'bg-[#7c3aed]', borderColor: '#c084fc', hex: '#7c3aed' },
+        { id: 'gold', name: 'Vàng Ánh', bgClass: 'bg-[#b45309]', borderColor: '#fbbf24', hex: '#b45309' },
+        { id: 'mint', name: 'Xanh Mint', bgClass: 'bg-[#0f766e]', borderColor: '#2dd4bf', hex: '#0f766e' }
+      ];
+
+      const PRESET_BDAY_WISHES = [
+        "Chúc bạn tuổi mới luôn rực rỡ, bình an, ngập tràn may mắn và biến mọi ước mơ thành hiện thực! ✨",
+        "Chúc mừng sinh nhật! Chúc bạn thêm tuổi mới thật nhiều niềm vui, luôn tự tin và tỏa sáng rực rỡ! 💖",
+        "Happy Birthday! Mong rằng mọi điều ngọt ngào và hạnh phúc nhất sẽ luôn đồng hành bên bạn! 🎂",
+        "Chúc mừng sinh nhật người thương! Cảm ơn vì đã xuất hiện và làm cuộc đời này thật dịu dàng! 🎈",
+        "Tuổi mới chúc bạn công việc thăng hoa, tiền tài tấn tới, sức khỏe dồi dào và luôn mỉm cười! 🌟",
+      
+        "Chúc tuổi mới của bạn bắt đầu bằng những điều thật đẹp và kết thúc mỗi ngày bằng một nụ cười thật vui! 🌷",
+        "Mong tuổi mới mang đến cho bạn thật nhiều cơ hội, thật nhiều yêu thương và thật nhiều khoảnh khắc đáng nhớ! 💙",
+        "Chúc bạn sinh nhật vui vẻ! Mong mọi ngày phía trước đều nhẹ nhàng, may mắn và ngập tràn những điều bất ngờ tuyệt vời! 🎁",
+        "Thêm một tuổi, thêm một phiên bản tuyệt vời hơn của chính mình. Chúc bạn luôn hạnh phúc với những gì mình lựa chọn! 🌱",
+        "Chúc bạn có một tuổi mới đủ bình yên để mỉm cười, đủ mạnh mẽ để bước tiếp và đủ may mắn để gặp những điều tốt đẹp! 🌈",
+      
+        "Sinh nhật vui vẻ nhé! Chúc bạn hôm nay thật vui, ngày mai thật đẹp và những ngày sau đó đều đáng mong chờ! 🎉",
+        "Mong mọi điều bạn âm thầm ước ao sẽ từng chút một trở thành hiện thực trong tuổi mới này! ⭐",
+        "Chúc bạn luôn giữ được nụ cười trên môi, ánh sáng trong mắt và sự ấm áp trong trái tim! 🫶",
+        "Tuổi mới rồi, hãy yêu bản thân nhiều hơn, sống thật vui và đừng quên tận hưởng từng khoảnh khắc nhé! 💕",
+        "Chúc bạn một năm mới của cuộc đời thật nhiều chuyến đi, những người tuyệt vời và những kỷ niệm không thể quên! ✈️",
+      
+        "Happy Birthday! Chúc bạn luôn được yêu thương đúng cách, được trân trọng thật lòng và được sống cuộc đời mình mong muốn! 💐",
+        "Chúc tuổi mới của bạn chẳng cần quá hoàn hảo, chỉ cần đủ vui, đủ khỏe, đủ yêu thương và đủ hạnh phúc! 🥰",
+        "Mong hôm nay sẽ là một ngày thật đặc biệt, bởi vì một người đặc biệt như bạn xứng đáng với những điều tuyệt vời nhất! 🎂",
+        "Chúc bạn càng lớn càng xinh, càng trưởng thành càng bản lĩnh và càng sống càng hạnh phúc! ✨",
+        "Một tuổi mới, một hành trình mới. Chúc bạn luôn dũng cảm theo đuổi điều mình yêu và không ngại trở thành phiên bản tốt nhất của mình! 🚀",
+      
+        "Chúc cậu sinh nhật thật vui! Tiền vào như nước, niềm vui đầy túi, hạnh phúc đầy tim và deadline thì tự động biến mất! 😂💸",
+        "Tuổi mới chúc bạn ăn ngon không béo, ngủ ngon không muộn, làm việc không stress và tiền tiêu mãi không hết! 🤣🎂",
+        "Chúc mừng sinh nhật! Chúc bạn thêm tuổi nhưng tâm hồn vẫn trẻ, ví tiền ngày càng dày và nhan sắc ngày càng thăng hạng! 😎✨",
+        "Sinh nhật vui vẻ! Chúc mọi chuyện đều thuận lợi, trừ chuyện tăng cân nhé! 🎂😂",
+        "Chúc bạn tuổi mới nhiều tiền hơn, ít drama hơn và quan trọng nhất là không còn gặp những người làm mình mệt! 🥳",
+      
+        "Chúc mừng sinh nhật cô gái tuyệt vời! Mong bạn luôn xinh đẹp, vui vẻ và được yêu thương theo cách bạn xứng đáng! 🌸",
+        "Chúc mừng sinh nhật chàng trai tuyệt vời! Mong tuổi mới mang đến cho bạn thật nhiều thành công, bản lĩnh và những niềm vui bất ngờ! 🥂",
+        "Chúc cô gái của hôm nay luôn giữ được sự dịu dàng, mạnh mẽ và nụ cười khiến cả thế giới trở nên dễ thương hơn! 💕",
+        "Chúc chàng trai tuổi mới ngày càng phong độ, sự nghiệp thuận lợi và luôn có những người thật lòng bên cạnh! 🔥",
+        "Mong tuổi mới sẽ dịu dàng với bạn, bù đắp những điều chưa trọn vẹn và mang đến thật nhiều yêu thương! 🌹",
+      
+        "Chúc mừng sinh nhật người bạn tuyệt vời! Cảm ơn vì đã luôn xuất hiện trong những lúc vui buồn và cùng nhau tạo nên thật nhiều kỷ niệm! 🤝",
+        "Tuổi mới rồi nhé! Chúc tình bạn của chúng ta vẫn luôn nhiều tiếng cười, nhiều cuộc hẹn và thật nhiều câu chuyện để kể! 🥂",
+        "Chúc bạn sinh nhật vui vẻ! Mong chúng ta sẽ còn cùng nhau ăn thật nhiều bữa ngon và trải qua thật nhiều chuyến đi đáng nhớ! 🍰✈️",
+        "Happy Birthday, bestie! Chúc cậu luôn vui vẻ, xinh đẹp, giàu có và nhớ chia sẻ sự giàu có ấy với tớ! 😂💰",
+        "Thêm một tuổi nhưng tình bạn vẫn phải trẻ mãi nhé! Chúc cậu một sinh nhật thật đáng nhớ! 🎉",
+      
+        "Chúc mừng sinh nhật! Mong những ngày u ám sẽ qua nhanh và phía trước luôn là những ngày xanh trong, đầy hy vọng! 🌊",
+        "Tuổi mới, mong bạn gặp đúng người, đi đúng hướng và có đủ can đảm để lựa chọn điều khiến mình hạnh phúc! 💙",
+        "Chúc bạn luôn bình an giữa những ngày vội vã và luôn tìm thấy lý do để mỉm cười dù cuộc sống có đôi lúc không hoàn hảo! 🌿",
+        "Mong tuổi mới của bạn giống như một chuyến hành trình đẹp: có bất ngờ, có thử thách, có trưởng thành và thật nhiều khoảnh khắc đáng nhớ! 🗺️",
+        "Chúc bạn bước sang tuổi mới với một trái tim nhẹ nhàng hơn, một tâm thế mạnh mẽ hơn và một tương lai rực rỡ hơn! 🌅",
+      
+        "Chúc sinh nhật thật vui! Mong mọi điều tốt đẹp nhất sẽ tìm được đường đến với bạn, dù bạn đang ở bất kỳ nơi đâu! 💫",
+        "Hôm nay là ngày dành riêng cho bạn, vậy nên hãy cười thật nhiều, ăn thật ngon và tận hưởng thật trọn vẹn nhé! 🎂🎉",
+        "Chúc bạn có một sinh nhật ngập tràn hoa, quà, bánh và đặc biệt là thật nhiều tình yêu thương! 🌷🎁",
+        "Mong nụ cười hôm nay sẽ trở thành khởi đầu cho một năm thật nhiều niềm vui và những điều đáng nhớ! 😊✨",
+        "Chúc bạn tuổi mới không chỉ thêm tuổi mà còn thêm thật nhiều trải nghiệm, kiến thức, tình yêu và những giấc mơ mới! 🌟",
+      
+        "Happy Birthday! May this new chapter bring you endless happiness, beautiful memories, and everything your heart wishes for! 🎂✨",
+        "Wishing you a birthday filled with love, laughter, sunshine, and all the little things that make life beautiful! 🌈",
+        "May your new age be brighter, happier, and filled with unforgettable moments. Happy Birthday! 💙",
+        "Another year, another beautiful chapter. May your story become more amazing with every page! 📖✨",
+        "Happy Birthday! Keep shining, keep dreaming, and keep being wonderfully you! 🌟"
+      ];
+
+
+      let currentChibiIndex = 0;
+      let currentBdayChibiIndex = 0;
+      let currentBdayThemeIndex = 0;
+
+      // State quản lý ngày
+      let selectedDate = new Date();
+      selectedDate.setFullYear(selectedDate.getFullYear(), 0, 1); // Đầu năm nay
+
+      let modalViewingYear = selectedDate.getFullYear();
+      let modalViewingMonth = selectedDate.getMonth();
+      let modalTempSelected = new Date(selectedDate.getTime());
+
+      let animatedDayVal = 0;
+      let counterAnimFrame = null;
+
+      function showToast(msg) {
+        toastText.textContent = msg;
+        toastMessage.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-3');
+        toastMessage.classList.add('opacity-100', 'translate-y-0');
+        setTimeout(() => {
+          toastMessage.classList.add('opacity-0', 'pointer-events-none', 'translate-y-3');
+          toastMessage.classList.remove('opacity-100', 'translate-y-0');
+        }, 2200);
+      }
+
+      function triggerFireworks() {
+        if (typeof confetti === 'function') {
+          confetti({
+            particleCount: 70,
+            spread: 65,
+            origin: { y: 0.6 },
+            colors: ['#0284c7', '#0369a1', '#38bdf8', '#10b981', '#f59e0b', '#ffffff']
+          });
+        }
+      }
+
+      function pad(num) {
+        return String(num).padStart(2, '0');
+      }
+
+      function formatDDMMYYYY(d) {
+        if (!d || isNaN(d.getTime())) return '';
+        return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+      }
+
+      function parseDDMMYYYY(str) {
+        if (!str || typeof str !== 'string') return null;
+        const clean = str.trim();
+        const parts = clean.split('/');
+        if (parts.length !== 3) return null;
+
+        const d = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10);
+        const y = parseInt(parts[2], 10);
+
+        if (isNaN(d) || isNaN(m) || isNaN(y)) return null;
+        if (m < 1 || m > 12 || y < 1900 || y > 2100) return null;
+
+        const maxD = new Date(y, m, 0).getDate();
+        if (d < 1 || d > maxD) return null;
+
+        return new Date(y, m - 1, d);
+      }
+
+      function getVietnameseDayOfWeek(d) {
+        const arr = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+        return arr[d.getDay()];
+      }
+
+      function getCanChiYear(year) {
+        const can = ['Canh', 'Tân', 'Nhâm', 'Quý', 'Giáp', 'Ất', 'Bính', 'Đinh', 'Mậu', 'Kỷ'];
+        const chi = ['Thân', 'Dậu', 'Tuất', 'Hợi', 'Tý', 'Sửu', 'Dần', 'Mão', 'Thìn', 'Tỵ', 'Ngọ', 'Mùi'];
+        return `${can[year % 10]} ${chi[year % 12]}`;
+      }
+
+      function getZodiac(day, month) {
+        const signs = [
+          { name: 'Ma Kết ♑', start: [12, 22], end: [1, 19] },
+          { name: 'Bảo Bình ♒', start: [1, 20], end: [2, 18] },
+          { name: 'Song Ngư ♓', start: [2, 19], end: [3, 20] },
+          { name: 'Bạch Dương ♈', start: [3, 21], end: [4, 19] },
+          { name: 'Kim Ngưu ♉', start: [4, 20], end: [5, 20] },
+          { name: 'Song Tử ♊', start: [5, 21], end: [6, 21] },
+          { name: 'Cự Giải ♋', start: [6, 22], end: [7, 22] },
+          { name: 'Sư Tử ♌', start: [7, 23], end: [8, 22] },
+          { name: 'Xử Nữ ♍', start: [8, 23], end: [9, 22] },
+          { name: 'Thiên Bình ♎', start: [9, 23], end: [10, 23] },
+          { name: 'Bọ Cạp ♏', start: [10, 24], end: [11, 21] },
+          { name: 'Nhân Mã ♐', start: [11, 22], end: [12, 21] }
+        ];
+
+        for (let s of signs) {
+          if (s.name.includes('Ma Kết')) {
+            if ((month === 12 && day >= 22) || (month === 1 && day <= 19)) return s.name;
+          } else {
+            const [sm, sd] = s.start;
+            const [em, ed] = s.end;
+            if ((month === sm && day >= sd) || (month === em && day <= ed)) {
+              return s.name;
+            }
+          }
+        }
+        return 'Bạch Dương ♈';
+      }
+
+      function syncInputFromSelected() {
+        formattedDateInput.value = formatDDMMYYYY(selectedDate);
+        clearInputBtn.classList.remove('hidden');
+        inputErrorMsg.classList.add('hidden');
+      }
+
+      // INPUT DD/MM/YYYY
+      let prevInputVal = '';
+
+      formattedDateInput.addEventListener('keydown', function(e) {
+        prevInputVal = this.value;
+      });
+
+      formattedDateInput.addEventListener('input', function(e) {
+        let v = this.value;
+        const isDeleting = prevInputVal.length > v.length;
+
+        let digits = v.replace(/\D/g, '');
+        if (digits.length > 8) digits = digits.substring(0, 8);
+
+        if (!isDeleting) {
+          if (digits.length >= 5) {
+            this.value = `${digits.substring(0, 2)}/${digits.substring(2, 4)}/${digits.substring(4)}`;
+          } else if (digits.length >= 3) {
+            this.value = `${digits.substring(0, 2)}/${digits.substring(2)}`;
+          } else {
+            this.value = digits;
+          }
+        }
+
+        clearInputBtn.classList.toggle('hidden', this.value.length === 0);
+
+        if (this.value.length === 10) {
+          const parsed = parseDDMMYYYY(this.value);
+          if (parsed) {
+            selectedDate = parsed;
+            inputErrorMsg.classList.add('hidden');
+            recalculateAll();
+          } else {
+            inputErrorMsg.classList.remove('hidden');
+          }
+        } else {
+          inputErrorMsg.classList.add('hidden');
+        }
+      });
+
+      clearInputBtn.addEventListener('click', () => {
+        formattedDateInput.value = '';
+        clearInputBtn.classList.add('hidden');
+        inputErrorMsg.classList.add('hidden');
+        formattedDateInput.focus();
+      });
+
+      // POPUP DIALOG LỊCH (TOUCH-FRIENDLY)
+      function initCalendarModalControls() {
+        calMonthSelect.innerHTML = '';
+        for (let m = 1; m <= 12; m++) {
+          const opt = document.createElement('option');
+          opt.value = m - 1;
+          opt.textContent = `Tháng ${m}`;
+          calMonthSelect.appendChild(opt);
+        }
+
+        calYearSelect.innerHTML = '';
+        const nowY = new Date().getFullYear();
+        for (let y = nowY + 20; y >= 1940; y--) {
+          const opt = document.createElement('option');
+          opt.value = y;
+          opt.textContent = `Năm ${y}`;
+          calYearSelect.appendChild(opt);
+        }
+
+        calMonthSelect.addEventListener('change', () => {
+          modalViewingMonth = parseInt(calMonthSelect.value, 10);
+          renderCalendarDays();
+        });
+
+        calYearSelect.addEventListener('change', () => {
+          modalViewingYear = parseInt(calYearSelect.value, 10);
+          renderCalendarDays();
+        });
+
+        calPrevMonthBtn.addEventListener('click', () => {
+          modalViewingMonth--;
+          if (modalViewingMonth < 0) {
+            modalViewingMonth = 11;
+            modalViewingYear--;
+          }
+          calMonthSelect.value = modalViewingMonth;
+          calYearSelect.value = modalViewingYear;
+          renderCalendarDays();
+        });
+
+        calNextMonthBtn.addEventListener('click', () => {
+          modalViewingMonth++;
+          if (modalViewingMonth > 11) {
+            modalViewingMonth = 0;
+            modalViewingYear++;
+          }
+          calMonthSelect.value = modalViewingMonth;
+          calYearSelect.value = modalViewingYear;
+          renderCalendarDays();
+        });
+
+        calTodayBtn.addEventListener('click', () => {
+          const now = new Date();
+          modalTempSelected = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          modalViewingYear = now.getFullYear();
+          modalViewingMonth = now.getMonth();
+          calMonthSelect.value = modalViewingMonth;
+          calYearSelect.value = modalViewingYear;
+          renderCalendarDays();
+        });
+
+        calConfirmBtn.addEventListener('click', () => {
+          selectedDate = new Date(modalTempSelected.getTime());
+          syncInputFromSelected();
+          closeDatePicker();
+          recalculateAll();
+          triggerFireworks();
+          showToast(`Đã chọn: ${formatDDMMYYYY(selectedDate)}`);
+        });
+
+        openDatePickerBtn.addEventListener('click', openDatePicker);
+        closeDatePickerBtn.addEventListener('click', closeDatePicker);
+        datePickerModal.addEventListener('click', (e) => {
+          if (e.target === datePickerModal) closeDatePicker();
+        });
+      }
+
+      function openDatePicker() {
+        modalTempSelected = new Date(selectedDate.getTime());
+        modalViewingYear = modalTempSelected.getFullYear();
+        modalViewingMonth = modalTempSelected.getMonth();
+        calMonthSelect.value = modalViewingMonth;
+        calYearSelect.value = modalViewingYear;
+
+        renderCalendarDays();
+
+        datePickerModal.classList.remove('opacity-0', 'pointer-events-none');
+        datePickerModal.classList.add('opacity-100');
+        datePickerContent.classList.remove('scale-95');
+        datePickerContent.classList.add('scale-100');
+      }
+
+      function closeDatePicker() {
+        datePickerModal.classList.add('opacity-0', 'pointer-events-none');
+        datePickerModal.classList.remove('opacity-100');
+        datePickerContent.classList.add('scale-95');
+        datePickerContent.classList.remove('scale-100');
+      }
+
+      function renderCalendarDays() {
+        calDaysGrid.innerHTML = '';
+
+        const firstDayOfMonth = new Date(modalViewingYear, modalViewingMonth, 1);
+        const daysInMonth = new Date(modalViewingYear, modalViewingMonth + 1, 0).getDate();
+
+        let startDay = firstDayOfMonth.getDay() - 1;
+        if (startDay === -1) startDay = 6;
+
+        for (let i = 0; i < startDay; i++) {
+          const empty = document.createElement('div');
+          empty.className = 'p-2 opacity-10 pointer-events-none';
+          calDaysGrid.appendChild(empty);
+        }
+
+        const today = new Date();
+        const isThisMonth = today.getFullYear() === modalViewingYear && today.getMonth() === modalViewingMonth;
+
+        for (let d = 1; d <= daysInMonth; d++) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.textContent = d;
+          btn.className = 'h-9 w-full rounded-xl transition text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center';
+
+          const isSelected = modalTempSelected.getFullYear() === modalViewingYear &&
+                              modalTempSelected.getMonth() === modalViewingMonth &&
+                              modalTempSelected.getDate() === d;
+
+          const isRealToday = isThisMonth && today.getDate() === d;
+
+          if (isSelected) {
+            btn.className = 'h-9 w-full rounded-xl bg-ocean-600 text-white font-extrabold shadow-sm flex items-center justify-center';
+          } else if (isRealToday) {
+            btn.classList.add('border', 'border-ocean-600', 'text-ocean-600', 'font-black');
+          }
+
+          btn.addEventListener('click', () => {
+            modalTempSelected = new Date(modalViewingYear, modalViewingMonth, d);
+            renderCalendarDays();
+          });
+
+          calDaysGrid.appendChild(btn);
+        }
+      }
+
+      // PRESETS
+      document.querySelectorAll('.quick-preset-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const preset = btn.dataset.preset;
+          const now = new Date();
+          let p = new Date();
+
+          if (preset === 'today') {
+            p = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          } else if (preset === 'yesterday') {
+            p.setDate(now.getDate() - 1);
+          } else if (preset === '100ago') {
+            p.setDate(now.getDate() - 100);
+          } else if (preset === '1yearAgo') {
+            p.setFullYear(now.getFullYear() - 1);
+          } else if (preset === 'startYear') {
+            p = new Date(now.getFullYear(), 0, 1);
+          } else if (preset === 'endYear') {
+            p = new Date(now.getFullYear(), 11, 31);
+          }
+
+          selectedDate = p;
+          syncInputFromSelected();
+          recalculateAll();
+          triggerFireworks();
+          showToast('Đã chọn mốc nhanh!');
+        });
+      });
+
+      inclusiveCheck.addEventListener('change', recalculateAll);
+
+      function animateDayCounter(target) {
+        if (counterAnimFrame) cancelAnimationFrame(counterAnimFrame);
+        const start = animatedDayVal;
+        const duration = 450;
+        const startTime = performance.now();
+
+        function step(time) {
+          const elapsed = time - startTime;
+          const prog = Math.min(elapsed / duration, 1);
+          const easeOut = 1 - Math.pow(1 - prog, 3);
+          const val = Math.round(start + (target - start) * easeOut);
+
+          bigDayCounter.textContent = val.toLocaleString('vi-VN');
+          if (prog < 1) {
+            counterAnimFrame = requestAnimationFrame(step);
+          } else {
+            animatedDayVal = target;
+          }
+        }
+        counterAnimFrame = requestAnimationFrame(step);
+      }
+
+      function calculateAccurateYMD(start, end) {
+        let s = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+        let e = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+
+        let years = e.getFullYear() - s.getFullYear();
+        let months = e.getMonth() - s.getMonth();
+        let days = e.getDate() - s.getDate();
+
+        if (days < 0) {
+          const prevMonthLastDay = new Date(e.getFullYear(), e.getMonth(), 0).getDate();
+          days += prevMonthLastDay;
+          months -= 1;
+        }
+        if (months < 0) {
+          months += 12;
+          years -= 1;
+        }
+        return { years, months, days };
+      }
+
+      function countWorkDays(startDate, endDate) {
+        let cur = new Date(startDate.getTime());
+        let workDays = 0;
+        let weekendDays = 0;
+
+        while (cur <= endDate) {
+          const day = cur.getDay();
+          if (day === 0 || day === 6) {
+            weekendDays++;
+          } else {
+            workDays++;
+          }
+          cur.setDate(cur.getDate() + 1);
+        }
+        return { workDays, weekendDays };
+      }
+
+      function recalculateAll() {
+        const now = new Date();
+        const todayZero = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const targetZero = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+
+        const diffMs = todayZero.getTime() - targetZero.getTime();
+        const isPast = diffMs >= 0;
+        const isInclusive = inclusiveCheck.checked;
+
+        let totalDays = Math.round(Math.abs(diffMs) / (1000 * 60 * 60 * 24));
+        if (isInclusive) totalDays += 1;
+
+        heroTargetDateStr.textContent = `${getVietnameseDayOfWeek(targetZero)}, ${formatDDMMYYYY(targetZero)}`;
+        heroTodayDateStr.textContent = `${getVietnameseDayOfWeek(todayZero)}, ${formatDDMMYYYY(todayZero)}`;
+
+        if (isPast) {
+          if (totalDays === 0 && !isInclusive) {
+            heroStatusText.textContent = 'Mốc Là Chính Hôm Nay!';
+            badgeDirection.textContent = 'Hôm nay';
+            badgeDirection.className = 'px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg text-[10px] sm:text-[11px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300';
+          } else {
+            heroStatusText.textContent = 'Đã Trôi Qua Đến Hôm Nay';
+            badgeDirection.textContent = 'Quá khứ';
+            badgeDirection.className = 'px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg text-[10px] sm:text-[11px] font-bold uppercase tracking-wider bg-ocean-100 text-ocean-700 dark:bg-ocean-950 dark:text-ocean-300';
+          }
+        } else {
+          heroStatusText.textContent = 'Thời Gian Còn Đến Ngày Đó';
+          badgeDirection.textContent = 'Tương lai';
+          badgeDirection.className = 'px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg text-[10px] sm:text-[11px] font-bold uppercase tracking-wider bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300';
+        }
+
+        animateDayCounter(totalDays);
+
+        const start = isPast ? targetZero : todayZero;
+        const end = isPast ? todayZero : targetZero;
+        const ymd = calculateAccurateYMD(start, end);
+
+        let parts = [];
+        if (ymd.years > 0) parts.push(`${ymd.years} năm`);
+        if (ymd.months > 0) parts.push(`${ymd.months} tháng`);
+        if (ymd.days > 0 || parts.length === 0) parts.push(`${ymd.days + (isInclusive ? 1 : 0)} ngày`);
+
+        heroYMDText.innerHTML = `<i class="ph-fill ph-calendar-star text-white shrink-0"></i> <span>Tức là: <strong class="text-white">${parts.join(' ')}</strong></span>`;
+
+        const weeks = Math.floor(totalDays / 7);
+        const rem = totalDays % 7;
+        statWeeksDisplay.textContent = `${weeks.toLocaleString('vi-VN')} tuần`;
+        statRemDaysDisplay.textContent = `dư ${rem} ngày lẻ`;
+
+        const { workDays, weekendDays } = countWorkDays(start, end);
+        statWorkDays.textContent = `${workDays.toLocaleString('vi-VN')} ngày`;
+        statWeekendDays.textContent = `${weekendDays.toLocaleString('vi-VN')} ngày`;
+
+        const beats = (totalDays * 108000) / 1000000;
+        statHeartBeats.textContent = `${beats.toFixed(1)} tr`;
+
+        const pct = Math.min(((totalDays / 365) * 100), 100).toFixed(1);
+        timelineProgressBar.style.width = `${pct}%`;
+        timelinePercent.textContent = `${((totalDays / 365) * 100).toFixed(1)}%`;
+        timelineLabel.textContent = totalDays >= 365 ? 'Đã vượt qua mốc 1 năm (365 ngày)' : 'Tiến trình mốc 365 ngày';
+
+        zodiacSignDisplay.textContent = getZodiac(targetZero.getDate(), targetZero.getMonth() + 1);
+        canChiDisplay.textContent = `Năm ${getCanChiYear(targetZero.getFullYear())}`;
+
+        updateMilestones(targetZero, todayZero);
+      }
+
+      function updateMilestones(targetZero, todayZero) {
+        milestonesGrid.innerHTML = '';
+        const list = [100, 200, 365, 500, 1000, 2000, 5000];
+
+        list.forEach(days => {
+          const mDate = new Date(targetZero.getTime());
+          mDate.setDate(mDate.getDate() + days);
+
+          const diff = Math.round((mDate.getTime() - todayZero.getTime()) / (1000 * 60 * 60 * 24));
+          const isPassed = diff < 0;
+          const isToday = diff === 0;
+
+          let badgeHtml = '';
+          if (isToday) {
+            badgeHtml = `<span class="px-2 py-0.5 rounded-lg text-[10px] sm:text-[11px] font-bold bg-emerald-600 text-white shrink-0">Hôm nay!</span>`;
+          } else if (isPassed) {
+            badgeHtml = `<span class="px-2 py-0.5 rounded-lg text-[10px] sm:text-[11px] font-bold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 shrink-0">Đã qua ${Math.abs(diff)} ngày</span>`;
+          } else {
+            badgeHtml = `<span class="px-2 py-0.5 rounded-lg text-[10px] sm:text-[11px] font-bold bg-ocean-100 text-ocean-700 dark:bg-ocean-950 dark:text-ocean-300 shrink-0">Còn ${diff} ngày</span>`;
+          }
+
+          const card = document.createElement('div');
+          card.className = 'p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 flex items-center justify-between gap-2 transition';
+          card.innerHTML = `
+            <div class="min-w-0">
+              <div class="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5 truncate">
+                <i class="ph-bold ph-flag text-ocean-600 text-sm shrink-0"></i> Mốc tròn ${days.toLocaleString('vi-VN')} ngày
+              </div>
+              <div class="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-0.5 truncate">
+                ${getVietnameseDayOfWeek(mDate)}, ${formatDDMMYYYY(mDate)}
+              </div>
+            </div>
+            <div>${badgeHtml}</div>
+          `;
+          milestonesGrid.appendChild(card);
+        });
+
+        const curY = todayZero.getFullYear();
+        let nextAnniv = new Date(curY, targetZero.getMonth(), targetZero.getDate());
+        if (nextAnniv < todayZero) {
+          nextAnniv = new Date(curY + 1, targetZero.getMonth(), targetZero.getDate());
+        }
+        const leftDays = Math.round((nextAnniv.getTime() - todayZero.getTime()) / (1000 * 60 * 60 * 24));
+        const numY = nextAnniv.getFullYear() - targetZero.getFullYear();
+
+        nextAnniversaryStr.textContent = `${getVietnameseDayOfWeek(nextAnniv)}, ${formatDDMMYYYY(nextAnniv)} (Tròn ${numY} năm)`;
+        if (leftDays === 0) {
+          nextAnnivBadge.textContent = '🎉 Hôm nay!';
+          nextAnnivBadge.className = 'inline-block px-3 py-1 rounded-lg text-xs font-bold bg-emerald-600 text-white';
+        } else {
+          nextAnnivBadge.textContent = `Còn ${leftDays} ngày`;
+          nextAnnivBadge.className = 'inline-block px-3 py-1 rounded-lg text-xs font-bold bg-ocean-600 text-white';
+        }
+      }
+
+      function startRealTimeTicker() {
+        function tick() {
+          const now = new Date();
+          realtimeTodayDateStr.textContent = formatDDMMYYYY(now);
+          realtimeTickerClock.textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+
+          const startMs = selectedDate.getTime();
+          const curMs = now.getTime();
+          const diffMs = Math.abs(curMs - startMs);
+
+          const totalSec = Math.floor(diffMs / 1000);
+          const totalMin = Math.floor(totalSec / 60);
+          const totalHour = Math.floor(totalMin / 60);
+
+          liveTotalHours.textContent = totalHour.toLocaleString('vi-VN');
+          liveTotalMins.textContent = totalMin.toLocaleString('vi-VN');
+          liveTotalSecs.textContent = totalSec.toLocaleString('vi-VN');
+        }
+        tick();
+        setInterval(tick, 1000);
+      }
+
+      function getSavedEvents() {
+        try {
+          const d = localStorage.getItem(STORAGE_EVENTS_KEY);
+          return d ? JSON.parse(d) : [];
+        } catch {
+          return [];
+        }
+      }
+
+      function renderEventsList() {
+        const events = getSavedEvents();
+        eventCountBadge.textContent = events.length;
+
+        if (events.length === 0) {
+          eventsContainer.innerHTML = `
+            <div class="text-center py-6 text-xs text-slate-400 dark:text-slate-500 font-medium">
+              Chưa có mốc kỷ niệm nào được lưu.
+            </div>
+          `;
+          return;
+        }
+
+        eventsContainer.innerHTML = '';
+        const now = new Date();
+        const todayZero = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+        events.forEach((ev, idx) => {
+          const d = parseDDMMYYYY(ev.date);
+          if (!d) return;
+
+          const diffMs = todayZero.getTime() - d.getTime();
+          let days = Math.round(Math.abs(diffMs) / (1000 * 60 * 60 * 24));
+          if (ev.inclusive) days += 1;
+          const isPast = diffMs >= 0;
+
+          const item = document.createElement('div');
+          item.className = 'p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 hover:bg-ocean-50 dark:hover:bg-slate-800 transition flex items-center justify-between gap-2';
+          item.innerHTML = `
+            <button type="button" class="select-saved-btn text-left flex-1 min-w-0" data-index="${idx}">
+              <div class="font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100 truncate flex items-center gap-1.5">
+                <i class="ph-bold ph-bookmark-simple text-ocean-600 shrink-0"></i> <span class="truncate">${ev.title}</span>
+              </div>
+              <div class="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-0.5 truncate">
+                ${ev.date} • <strong class="text-ocean-700 dark:text-ocean-300 font-bold">${isPast ? 'Đã ' : 'Còn '} ${days.toLocaleString('vi-VN')} ngày</strong>
+              </div>
+            </button>
+            <button type="button" class="del-saved-btn text-slate-400 hover:text-rose-500 p-2 rounded-lg transition active:scale-95 shrink-0" data-index="${idx}" title="Xóa mốc này">
+              <i class="ph-bold ph-trash text-base"></i>
+            </button>
+          `;
+          eventsContainer.appendChild(item);
+        });
+
+        document.querySelectorAll('.select-saved-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const idx = parseInt(btn.dataset.index, 10);
+            const ev = getSavedEvents()[idx];
+            if (ev) {
+              const parsed = parseDDMMYYYY(ev.date);
+              if (parsed) {
+                selectedDate = parsed;
+                inclusiveCheck.checked = !!ev.inclusive;
+                eventTitleInput.value = ev.title;
+                syncInputFromSelected();
+                recalculateAll();
+                showToast(`Đã tải: ${ev.title}`);
+              }
+            }
+          });
+        });
+
+        document.querySelectorAll('.del-saved-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const idx = parseInt(btn.dataset.index, 10);
+            const events = getSavedEvents();
+            events.splice(idx, 1);
+            localStorage.setItem(STORAGE_EVENTS_KEY, JSON.stringify(events));
+            renderEventsList();
+            showToast('Đã xóa mốc kỷ niệm');
+          });
+        });
+      }
+
+      saveEventBtn.addEventListener('click', () => {
+        const title = eventTitleInput.value.trim() || `Kỷ niệm ${formatDDMMYYYY(selectedDate)}`;
+        let events = getSavedEvents();
+
+        events.unshift({
+          title: title,
+          date: formatDDMMYYYY(selectedDate),
+          inclusive: inclusiveCheck.checked,
+          timestamp: Date.now()
+        });
+
+        if (events.length > 25) events = events.slice(0, 25);
+        localStorage.setItem(STORAGE_EVENTS_KEY, JSON.stringify(events));
+        renderEventsList();
+        eventTitleInput.value = '';
+        triggerFireworks();
+        showToast('Đã lưu kỷ niệm vào danh sách!');
+      });
+
+      clearAllEventsBtn.addEventListener('click', () => {
+        if (getSavedEvents().length === 0) return;
+        localStorage.removeItem(STORAGE_EVENTS_KEY);
+        renderEventsList();
+        showToast('Đã dọn dẹp danh mục kỷ niệm!');
+      });
+
+      // INIT CHIBI SELECTOR IN PREVIEW MODAL
+      function initChibiControls() {
+        chibiPickerButtons.innerHTML = '';
+        CHIBI_LIST.forEach((chibi, idx) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = `p-1.5 rounded-xl border flex flex-col items-center gap-1 transition shrink-0 w-16 sm:w-auto active:scale-95 ${idx === currentChibiIndex ? 'border-ocean-600 bg-ocean-50 dark:bg-ocean-950 font-bold' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 hover:bg-slate-100'}`;
+          btn.innerHTML = `
+            <div class="w-8 h-8 flex items-center justify-center">${chibi.svg}</div>
+            <span class="text-[9px] truncate w-full text-center text-slate-700 dark:text-slate-300">${chibi.name}</span>
+          `;
+          btn.addEventListener('click', () => {
+            currentChibiIndex = idx;
+            updateChibiPreview();
+          });
+          chibiPickerButtons.appendChild(btn);
+        });
+
+        randomChibiBtn.addEventListener('click', () => {
+          let nextIdx;
+          do {
+            nextIdx = Math.floor(Math.random() * CHIBI_LIST.length);
+          } while (nextIdx === currentChibiIndex && CHIBI_LIST.length > 1);
+          currentChibiIndex = nextIdx;
+          updateChibiPreview();
+          triggerFireworks();
+        });
+      }
+
+      function updateChibiPreview() {
+        const chibi = CHIBI_LIST[currentChibiIndex];
+        chibiSvgSlot.innerHTML = chibi.svg;
+        chibiNameBadge.textContent = chibi.name;
+
+        const exportSlot = document.getElementById('exportCardChibiSlot');
+        const exportBadge = document.getElementById('exportChibiNameBadge');
+        if (exportSlot) exportSlot.innerHTML = chibi.svg;
+        if (exportBadge) exportBadge.textContent = chibi.name;
+
+        const btns = chibiPickerButtons.querySelectorAll('button');
+        btns.forEach((b, idx) => {
+          if (idx === currentChibiIndex) {
+            b.className = 'p-1.5 rounded-xl border border-ocean-600 bg-ocean-50 dark:bg-ocean-950 font-bold flex flex-col items-center gap-1 transition shrink-0 w-16 sm:w-auto';
+          } else {
+            b.className = 'p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 hover:bg-slate-100 flex flex-col items-center gap-1 transition shrink-0 w-16 sm:w-auto';
+          }
+        });
+      }
+
+      function openCardPreview() {
+        previewCardTitle.textContent = eventTitleInput.value.trim() || 'Hành Trình Kỷ Niệm Của Tôi';
+        previewCardStart.textContent = formatDDMMYYYY(selectedDate);
+        previewCardToday.textContent = formatDDMMYYYY(new Date());
+        previewCardBigDays.textContent = bigDayCounter.textContent;
+        previewCardYMD.textContent = heroYMDText.innerText.replace('Tức là:', '').trim();
+
+        updateChibiPreview();
+
+        cardPreviewModal.classList.remove('opacity-0', 'pointer-events-none');
+        cardPreviewModal.classList.add('opacity-100');
+        cardPreviewContent.classList.remove('scale-95');
+        cardPreviewContent.classList.add('scale-100');
+      }
+
+      function closeCardPreview() {
+        cardPreviewModal.classList.add('opacity-0', 'pointer-events-none');
+        cardPreviewModal.classList.remove('opacity-100');
+        cardPreviewContent.classList.add('scale-95');
+        cardPreviewContent.classList.remove('scale-100');
+      }
+
+      openCardPreviewBtn.addEventListener('click', openCardPreview);
+      closePreviewBtn.addEventListener('click', closeCardPreview);
+      cancelPreviewBtn.addEventListener('click', closeCardPreview);
+      cardPreviewModal.addEventListener('click', (e) => {
+        if (e.target === cardPreviewModal) closeCardPreview();
+      });
+
+      downloadCardPngBtn.addEventListener('click', () => {
+        const exportWrapper = document.getElementById('exportCardWrapper');
+        const exportTitle = document.getElementById('exportCardTitle');
+        const exportStart = document.getElementById('exportCardStart');
+        const exportToday = document.getElementById('exportCardToday');
+        const exportBigDays = document.getElementById('exportCardBigDays');
+        const exportYMD = document.getElementById('exportCardYMD');
+
+        exportTitle.textContent = eventTitleInput.value.trim() || 'Hành Trình Kỷ Niệm Của Tôi';
+        exportStart.textContent = formatDDMMYYYY(selectedDate);
+        exportToday.textContent = formatDDMMYYYY(new Date());
+        exportBigDays.textContent = bigDayCounter.textContent;
+        exportYMD.textContent = heroYMDText.innerText.replace('Tức là:', '').trim();
+
+        updateChibiPreview();
+        showToast('Đang kết xuất ảnh thiệp siêu nét...');
+
+        if (typeof html2canvas === 'function') {
+          html2canvas(exportWrapper, {
+            scale: 2.5,
+            backgroundColor: null,
+            useCORS: true
+          }).then(canvas => {
+            const link = document.createElement('a');
+            const sanitizedTitle = (eventTitleInput.value.trim() || 'Ky-Niem').replace(/[\s/]/g, '-');
+            link.download = `${sanitizedTitle}-${formatDDMMYYYY(selectedDate).replace(/\//g, '-')}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            triggerFireworks();
+            showToast('Đã tải ảnh thiệp thành công! 🎉');
+            closeCardPreview();
+          }).catch(() => {
+            showToast('Không thể tạo file ảnh lúc này.');
+          });
+        }
+      });
+
+      // BIRTHDAY STUDIO
+      function initBirthdayStudio() {
+        bdayChibiSelector.innerHTML = '';
+        BDAY_CHIBIS.forEach((item, idx) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = `p-1.5 rounded-xl border flex flex-col items-center gap-1 transition active:scale-95 ${idx === currentBdayChibiIndex ? 'border-rose-500 bg-rose-50 dark:bg-rose-950 font-bold' : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50'}`;
+          btn.innerHTML = `
+            <div class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center">${item.svg}</div>
+            <span class="text-[9px] truncate w-full text-center">${item.name}</span>
+          `;
+          btn.addEventListener('click', () => {
+            currentBdayChibiIndex = idx;
+            updateBirthdayLivePreview();
+          });
+          bdayChibiSelector.appendChild(btn);
+        });
+
+        bdayThemeSelector.innerHTML = '';
+        BDAY_THEMES.forEach((theme, idx) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = `p-1.5 rounded-xl border flex flex-col items-center gap-1 transition active:scale-95 ${idx === currentBdayThemeIndex ? 'ring-2 ring-rose-500 font-bold' : 'border-slate-200 dark:border-slate-700'}`;
+          btn.innerHTML = `
+            <div class="w-5 h-5 sm:w-6 sm:h-6 rounded-lg ${theme.bgClass} shadow-sm border border-white/40"></div>
+            <span class="text-[9px] truncate w-full text-center">${theme.name.split(' ')[0]}</span>
+          `;
+          btn.addEventListener('click', () => {
+            currentBdayThemeIndex = idx;
+            updateBirthdayLivePreview();
+          });
+          bdayThemeSelector.appendChild(btn);
+        });
+
+        bdayQuickWishes.innerHTML = '';
+        PRESET_BDAY_WISHES.forEach((wish) => {
+          const chip = document.createElement('button');
+          chip.type = 'button';
+          chip.className = 'px-2 py-1 rounded-lg bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-[10px] sm:text-[11px] text-slate-700 dark:text-slate-300 font-medium border border-slate-200 dark:border-slate-700 transition text-left truncate max-w-[160px] sm:max-w-[200px] active:scale-95';
+          chip.textContent = wish;
+          chip.addEventListener('click', () => {
+            bdayWishInput.value = wish;
+            updateBirthdayLivePreview();
+          });
+          bdayQuickWishes.appendChild(chip);
+        });
+
+        bdayWishInput.value = PRESET_BDAY_WISHES[0];
+
+        randomBdayWishBtn.addEventListener('click', () => {
+          const nextWish = PRESET_BDAY_WISHES[Math.floor(Math.random() * PRESET_BDAY_WISHES.length)];
+          bdayWishInput.value = nextWish;
+          updateBirthdayLivePreview();
+        });
+
+        bdayNameInput.addEventListener('input', updateBirthdayLivePreview);
+        bdayWishInput.addEventListener('input', updateBirthdayLivePreview);
+
+        bdayDateInput.addEventListener('input', function() {
+          let v = this.value.replace(/\D/g, '');
+          if (v.length > 8) v = v.substring(0, 8);
+          if (v.length >= 5) {
+            this.value = `${v.substring(0, 2)}/${v.substring(2, 4)}/${v.substring(4)}`;
+          } else if (v.length >= 3) {
+            this.value = `${v.substring(0, 2)}/${v.substring(2)}`;
+          } else {
+            this.value = v;
+          }
+          if (this.value.length === 10) {
+            updateBirthdayLivePreview();
+          }
+        });
+
+        openBirthdayStudioBtn.addEventListener('click', openBirthdayStudio);
+        closeBirthdayModalBtn.addEventListener('click', closeBirthdayStudio);
+        birthdayStudioModal.addEventListener('click', (e) => {
+          if (e.target === birthdayStudioModal) closeBirthdayStudio();
+        });
+
+        bdayConfettiBtn.addEventListener('click', () => {
+          triggerFireworks();
+          showToast('🎉 Chúc mừng sinh nhật rộn ràng!');
+        });
+
+        downloadBdayPngBtn.addEventListener('click', exportBirthdayCardPng);
+      }
+
+      function openBirthdayStudio() {
+        bdayDateInput.value = formatDDMMYYYY(selectedDate);
+        updateBirthdayLivePreview();
+
+        birthdayStudioModal.classList.remove('opacity-0', 'pointer-events-none');
+        birthdayStudioModal.classList.add('opacity-100');
+        birthdayStudioContent.classList.remove('scale-95');
+        birthdayStudioContent.classList.add('scale-100');
+        triggerFireworks();
+      }
+
+      function closeBirthdayStudio() {
+        birthdayStudioModal.classList.add('opacity-0', 'pointer-events-none');
+        birthdayStudioModal.classList.remove('opacity-100');
+        birthdayStudioContent.classList.add('scale-95');
+        birthdayStudioContent.classList.remove('scale-100');
+      }
+
+      function updateBirthdayLivePreview() {
+        const chibi = BDAY_CHIBIS[currentBdayChibiIndex];
+        const theme = BDAY_THEMES[currentBdayThemeIndex];
+
+        bdayChibiSelector.querySelectorAll('button').forEach((b, idx) => {
+          b.className = `p-1.5 rounded-xl border flex flex-col items-center gap-1 transition ${idx === currentBdayChibiIndex ? 'border-rose-500 bg-rose-50 dark:bg-rose-950 font-bold' : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50'}`;
+        });
+
+        bdayThemeSelector.querySelectorAll('button').forEach((b, idx) => {
+          b.className = `p-1.5 rounded-xl border flex flex-col items-center gap-1 transition ${idx === currentBdayThemeIndex ? 'ring-2 ring-rose-500 font-bold' : 'border-slate-200 dark:border-slate-700'}`;
+        });
+
+        bdayCardChibiSlot.innerHTML = chibi.svg;
+        bdayPreviewTarget.className = `w-full max-w-[320px] sm:max-w-[350px] rounded-3xl p-4 sm:p-5 text-white shadow-xl relative overflow-hidden transition-all duration-300 border-2 select-none ${theme.bgClass}`;
+        bdayPreviewTarget.style.borderColor = theme.borderColor;
+
+        const bDate = parseDDMMYYYY(bdayDateInput.value) || selectedDate;
+        const now = new Date();
+        const todayZero = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const bZero = new Date(bDate.getFullYear(), bDate.getMonth(), bDate.getDate());
+
+        const diffMs = todayZero.getTime() - bZero.getTime();
+        const totalDays = Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24)));
+
+        let turningAge = todayZero.getFullYear() - bZero.getFullYear();
+        let nextBday = new Date(todayZero.getFullYear(), bZero.getMonth(), bZero.getDate());
+        if (nextBday < todayZero) {
+          nextBday = new Date(todayZero.getFullYear() + 1, bZero.getMonth(), bZero.getDate());
+        }
+        const daysToNext = Math.round((nextBday.getTime() - todayZero.getTime()) / (1000 * 60 * 60 * 24));
+
+        const nameVal = bdayNameInput.value.trim() || 'Minh Thư ✨';
+        bdayCardNameDisplay.textContent = nameVal;
+
+        if (turningAge > 0) {
+          bdayCardAgeSubtext.textContent = `Tròn ${turningAge} tuổi tràn đầy sức sống!`;
+        } else {
+          bdayCardAgeSubtext.textContent = `Mừng ngày bạn có mặt trên đời!`;
+        }
+
+        bdayCardWishDisplay.textContent = `"${bdayWishInput.value.trim() || PRESET_BDAY_WISHES[0]}"`;
+        bdayCardTotalDays.textContent = totalDays.toLocaleString('vi-VN');
+        bdayCardNextDays.textContent = daysToNext === 0 ? 'Hôm Nay!' : daysToNext.toLocaleString('vi-VN');
+
+        const zodiac = getZodiac(bZero.getDate(), bZero.getMonth() + 1);
+        bdayCardZodiacBadge.textContent = zodiac;
+
+        // Sync hidden export card
+        const exportWrapper = document.getElementById('exportBdayWrapper');
+        exportWrapper.style.backgroundColor = theme.hex;
+        exportWrapper.style.borderColor = theme.borderColor;
+        document.getElementById('exportBdayChibiSlot').innerHTML = chibi.svg;
+        document.getElementById('exportBdayNameDisplay').textContent = nameVal;
+        document.getElementById('exportBdayAgeSubtext').textContent = bdayCardAgeSubtext.textContent;
+        document.getElementById('exportBdayWishDisplay').textContent = bdayCardWishDisplay.textContent;
+        document.getElementById('exportBdayTotalDays').textContent = totalDays.toLocaleString('vi-VN');
+        document.getElementById('exportBdayNextDays').textContent = bdayCardNextDays.textContent;
+        document.getElementById('exportBdayZodiacBadge').textContent = zodiac;
+      }
+
+      function exportBirthdayCardPng() {
+        const exportWrapper = document.getElementById('exportBdayWrapper');
+        updateBirthdayLivePreview();
+        showToast('Đang kết xuất thiệp sinh nhật...');
+
+        if (typeof html2canvas === 'function') {
+          html2canvas(exportWrapper, {
+            scale: 2.5,
+            backgroundColor: null,
+            useCORS: true
+          }).then(canvas => {
+            const link = document.createElement('a');
+            const sanitizedName = (bdayNameInput.value.trim() || 'Sinh-Nhat').replace(/[\s/]/g, '-');
+            link.download = `Thiep-Sinh-Nhat-${sanitizedName}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            triggerFireworks();
+            showToast('Đã tải thiệp sinh nhật thành công! 🎂');
+          }).catch(() => {
+            showToast('Không thể tạo file ảnh lúc này.');
+          });
+        }
+      }
+
+      celebrateBtn.addEventListener('click', () => {
+        triggerFireworks();
+        showToast('Chúc bạn một ngày trọn vẹn niềm vui! 🎉');
+      });
+
+      function initTheme() {
+        const saved = localStorage.getItem(STORAGE_THEME_KEY);
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (saved === 'dark' || (!saved && prefersDark)) {
+          document.documentElement.classList.add('dark');
+          themeIcon.className = 'ph-bold ph-sun text-base';
+        } else {
+          document.documentElement.classList.remove('dark');
+          themeIcon.className = 'ph-bold ph-moon text-base';
+        }
+      }
+
+      themeToggleBtn.addEventListener('click', () => {
+        const isDark = document.documentElement.classList.toggle('dark');
+        localStorage.setItem(STORAGE_THEME_KEY, isDark ? 'dark' : 'light');
+        themeIcon.className = isDark ? 'ph-bold ph-sun text-base' : 'ph-bold ph-moon text-base';
+      });
+
+      function initApp() {
+        initTheme();
+        initCalendarModalControls();
+        initChibiControls();
+        initBirthdayStudio();
+
+        const now = new Date();
+        // Mặc định: Đầu năm nay (01/01)
+        selectedDate = new Date(now.getFullYear(), 0, 1);
+
+        const params = new URLSearchParams(window.location.search);
+        const urlDate = params.get('date');
+        if (urlDate) {
+          if (urlDate.includes('/')) {
+            const p = parseDDMMYYYY(urlDate);
+            if (p) selectedDate = p;
+          } else if (urlDate.includes('-')) {
+            const [y, m, d] = urlDate.split('-').map(Number);
+            if (y && m && d) selectedDate = new Date(y, m - 1, d);
+          }
+        }
+
+        syncInputFromSelected();
+        recalculateAll();
+        renderEventsList();
+        startRealTimeTicker();
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initApp);
+      } else {
+        initApp();
+      }
+    })();
+  </script>
+</body>
+</html>
